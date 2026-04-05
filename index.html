@@ -822,6 +822,35 @@ tr:hover td { background:var(--green-pale); }
 }
 .form-input:focus { border-color:var(--green); background:white; box-shadow:0 0 0 3px rgba(28,110,61,0.09); }
 
+/* Container search dropdown */
+.cnum-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; cursor:pointer;
+  border-bottom:1px solid #f0f0f0;
+  transition:background .12s;
+}
+.cnum-item:last-child { border-bottom:none; }
+.cnum-item:hover { background:var(--green-pale); }
+.cnum-item-num {
+  font-family:'JetBrains Mono',monospace; font-size:12px;
+  font-weight:700; color:var(--blue);
+  background:rgba(26,92,158,0.08); padding:2px 8px;
+  border-radius:6px; white-space:nowrap;
+}
+.cnum-item-name {
+  flex:1; font-size:13px; font-weight:600;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.cnum-item-size {
+  font-size:11px; color:var(--muted); white-space:nowrap;
+}
+.cnum-selected-banner {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; margin-top:6px;
+  background:var(--green-pale); border:1px solid var(--green-border);
+  border-radius:8px; font-size:12px;
+}
+
 /* Settings list items */
 .setting-item {
   display:flex; align-items:center; gap:10px;
@@ -1024,11 +1053,28 @@ tr:hover td { background:var(--green-pale); }
       <div class="card-body">
 
         <div class="frow c2">
-          <div class="field">
+          <div class="field" style="position:relative;">
             <label>رقم الحاوية *</label>
-            <select id="f-cnum" class="cnum-select" onchange="onContainerSelect()">
-              <option value="">— اختر رقم الحاوية —</option>
-            </select>
+            <div style="position:relative;">
+              <input type="text" id="f-cnum-search"
+                class="fi"
+                placeholder="🔍 اكتب رقم الحاوية أو اسم العميل..."
+                autocomplete="off"
+                oninput="searchContainerInput()"
+                onfocus="searchContainerInput()"
+                onblur="setTimeout(()=>hideContainerDropdown(),200)"
+                style="width:100%;padding-left:36px;">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;">🗑️</span>
+            </div>
+            <!-- Hidden field to store selected value -->
+            <input type="hidden" id="f-cnum" value="">
+            <!-- Dropdown results -->
+            <div id="cnum-dropdown" style="
+              display:none;position:absolute;top:100%;right:0;left:0;z-index:999;
+              background:white;border:1.5px solid var(--green-border);border-radius:12px;
+              box-shadow:0 8px 24px rgba(0,0,0,0.12);max-height:260px;overflow-y:auto;
+              margin-top:4px;">
+            </div>
           </div>
           <div class="field">
             <label>رقم عقد العميل</label>
@@ -1815,17 +1861,68 @@ function renderContainers() {
 window.renderContainers = renderContainers;
 
 function refreshDriverContainerSelect() {
-  const sel = document.getElementById('f-cnum');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— اختر رقم الحاوية —</option>' +
-    containers.map(c =>
-      `<option value="${c.num}" ${c.num===cur?'selected':''}>${c.num}${c.client?' — '+c.client:''}</option>`
-    ).join('');
-  if (cur && containers.find(c=>c.num===cur)) onContainerSelect();
-  else clearAutofill();
+  // With new search UI, just re-trigger if something already selected
+  const hidden = document.getElementById('f-cnum');
+  if (hidden && hidden.value) {
+    const c = containers.find(x=>x.num===hidden.value);
+    if (c) onContainerSelect();
+  }
 }
 window.refreshDriverContainerSelect = refreshDriverContainerSelect;
+
+function searchContainerInput() {
+  const input = document.getElementById('f-cnum-search');
+  const dropdown = document.getElementById('cnum-dropdown');
+  if (!input || !dropdown) return;
+
+  const q = input.value.trim().toLowerCase();
+
+  // Filter containers
+  const filtered = containers.filter(c => {
+    if (!q) return true;
+    return (c.num||'').toLowerCase().includes(q) ||
+           (c.client||'').includes(q) ||
+           (c.loc||'').includes(q);
+  }).slice(0, 20); // max 20 results
+
+  if (!filtered.length) {
+    dropdown.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:13px;">لا توجد نتائج</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  dropdown.innerHTML = filtered.map(c => `
+    <div class="cnum-item" onmousedown="selectContainer('${c.num}')">
+      <div class="cnum-item-num">${c.num}</div>
+      <div class="cnum-item-name">${c.client || '<span style="color:var(--muted);font-style:italic;">بدون اسم</span>'}</div>
+      <div class="cnum-item-size">${SZ_ICON[c.size]||''} ${SZ_LABEL[c.size]||c.size}</div>
+    </div>
+  `).join('');
+
+  dropdown.style.display = 'block';
+}
+window.searchContainerInput = searchContainerInput;
+
+function hideContainerDropdown() {
+  const d = document.getElementById('cnum-dropdown');
+  if (d) d.style.display = 'none';
+}
+window.hideContainerDropdown = hideContainerDropdown;
+
+function selectContainer(num) {
+  const hidden = document.getElementById('f-cnum');
+  const input  = document.getElementById('f-cnum-search');
+  const dropdown = document.getElementById('cnum-dropdown');
+
+  if (hidden) hidden.value = num;
+
+  const c = containers.find(x=>x.num===num);
+  if (input) input.value = c ? (c.num + (c.client ? '  —  ' + c.client : '')) : num;
+  if (dropdown) dropdown.style.display = 'none';
+
+  onContainerSelect();
+}
+window.selectContainer = selectContainer;
 
 function onContainerSelect() {
   const num = document.getElementById('f-cnum').value;
@@ -1859,6 +1956,13 @@ function clearAutofill() {
   document.getElementById('f-contract').value = '';
   document.getElementById('f-loc').value      = '';
   document.getElementById('autofill-banner').classList.remove('show');
+  const searchEl = document.getElementById('f-cnum-search');
+  if (searchEl) searchEl.value = '';
+  const hiddenEl = document.getElementById('f-cnum');
+  if (hiddenEl) hiddenEl.value = '';
+  // reset GPS from container
+  const mb = document.getElementById('manual-location-btn');
+  if (mb) mb.style.display = '';
 }
 window.clearAutofill = clearAutofill;
 
@@ -2122,6 +2226,8 @@ async function addLift() {
 
     if (res && !res.error && !res[0]?.error) {
       document.getElementById('f-cnum').value = '';
+      const srchEl = document.getElementById('f-cnum-search');
+      if (srchEl) srchEl.value = '';
       clearAutofill();
       document.getElementById('f-qty').value = '1';
       document.getElementById('f-notes').value = '';
