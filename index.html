@@ -2200,6 +2200,46 @@ function clearGPS() {
 }
 window.clearGPS = clearGPS;
 
+
+/* ══════════════════════════════════════════
+   PHOTO UPLOAD TO SUPABASE STORAGE
+══════════════════════════════════════════ */
+async function uploadPhotoToStorage(dataUrl, liftId, index) {
+  try {
+    // Convert base64 to blob
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const ext = blob.type.includes('png') ? 'png' : 'jpg';
+    const filename = `${liftId}_${index}.${ext}`;
+    const path = `lifts/${filename}`;
+
+    // Upload to Supabase Storage
+    const r = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/lift-photos/${path}`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': blob.type,
+          'x-upsert': 'true'
+        },
+        body: blob
+      }
+    );
+    if (r.ok) {
+      // Return public URL
+      return `${SUPABASE_URL}/storage/v1/object/public/lift-photos/${path}`;
+    }
+    // Fallback: return base64 if upload fails
+    console.warn('Storage upload failed, using base64 fallback');
+    return dataUrl;
+  } catch(e) {
+    console.warn('uploadPhotoToStorage error:', e);
+    return dataUrl; // fallback to base64
+  }
+}
+
 async function addLift() {
   const cnum     = document.getElementById('f-cnum').value;
   const contract = document.getElementById('f-contract').value.trim();
@@ -2212,14 +2252,23 @@ async function addLift() {
   if (!cnum)       { toast('⚠️ اختر رقم الحاوية','err'); return; }
   if (!chosenSize) { toast('⚠️ اختر مقاس الحاوية','err'); return; }
 
-  // Store photos as base64 in array (Supabase text[])
-  const photos = pendingPhotos.map(p => p.dataUrl);
   const gps_lat  = pendingGPS ? pendingGPS.lat : null;
   const gps_lng  = pendingGPS ? pendingGPS.lng : null;
   const maps_url = pendingGPS ? pendingGPS.mapsUrl : null;
 
   try {
+    // First insert the lift to get its ID, then upload photos
+    const liftId = crypto.randomUUID();
+
+    // Upload photos to Storage (not base64 in DB)
+    const photos = [];
+    for (let i = 0; i < pendingPhotos.length; i++) {
+      const url = await uploadPhotoToStorage(pendingPhotos[i].dataUrl, liftId, i);
+      photos.push(url);
+    }
+
     const res = await supa.insert('lifts', {
+      id: liftId,
       cnum, contract, client, loc,
       size: chosenSize, qty, time, notes,
       photos,
