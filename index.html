@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="version" content="2026-04-09-v3">
 <title>أروية للخدمات — نظام متابعة الرفعات</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -2300,18 +2304,24 @@ window.deleteLift = deleteLift;
    PERIOD / FILTER HELPERS
 ══════════════════════════════════════════ */
 function toLocalDate(ts) {
-  // Convert UTC timestamp to local date string for comparison
-  return new Date(ts).toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+  // Handle both Date objects and strings
+  const d = (ts instanceof Date) ? ts : new Date(ts);
+  // Use local date components to avoid UTC shift
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function isToday(ts) {
-  const today = new Date().toLocaleDateString('en-CA');
-  return toLocalDate(ts) === today;
+  const n = new Date();
+  const todayStr = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  return toLocalDate(ts) === todayStr;
 }
 
 function getFilteredLifts() {
   const n = new Date();
-  const todayStr = n.toLocaleDateString('en-CA');
+  const todayStr = toLocalDate(n);
   const fd = document.getElementById('dr-from')?.value;
   const td = document.getElementById('dr-to')?.value;
   return lifts.filter(l => {
