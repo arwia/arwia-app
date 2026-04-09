@@ -2299,22 +2299,32 @@ window.deleteLift = deleteLift;
 /* ══════════════════════════════════════════
    PERIOD / FILTER HELPERS
 ══════════════════════════════════════════ */
+function toLocalDate(ts) {
+  // Convert UTC timestamp to local date string for comparison
+  return new Date(ts).toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+}
+
 function isToday(ts) {
-  const n = new Date(); const d = new Date(ts);
-  return d.toDateString() === n.toDateString();
+  const today = new Date().toLocaleDateString('en-CA');
+  return toLocalDate(ts) === today;
 }
 
 function getFilteredLifts() {
   const n = new Date();
+  const todayStr = n.toLocaleDateString('en-CA');
   const fd = document.getElementById('dr-from')?.value;
   const td = document.getElementById('dr-to')?.value;
   return lifts.filter(l => {
+    const dStr = toLocalDate(l.ts);
     const d = new Date(l.ts);
-    if (activePeriod === 'today') return d.toDateString() === n.toDateString();
-    if (activePeriod === 'week') { const s=new Date(n); s.setDate(n.getDate()-n.getDay()); return d>=s; }
+    if (activePeriod === 'today') return dStr === todayStr;
+    if (activePeriod === 'week') {
+      const s = new Date(n); s.setDate(n.getDate() - n.getDay()); s.setHours(0,0,0,0);
+      return d >= s;
+    }
     if (activePeriod === 'month') return d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
     if (activePeriod === 'year') return d.getFullYear()===n.getFullYear();
-    if (activePeriod === 'custom' && fd && td) return d >= new Date(fd) && d <= new Date(td+'T23:59:59');
+    if (activePeriod === 'custom' && fd && td) return dStr >= fd && dStr <= td;
     return true;
   });
 }
