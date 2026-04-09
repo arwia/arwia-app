@@ -1443,10 +1443,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Simple Supabase client
 const supa = {
   async select(table, opts={}) {
-    let url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
+    const cols = opts.cols || '*';
+    let url = `${SUPABASE_URL}/rest/v1/${table}?select=${cols}`;
     if (opts.order) url += `&order=${opts.order}`;
     if (opts.eq) url += `&${opts.eq.col}=eq.${opts.eq.val}`;
     const r = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' } });
+    if (!r.ok) { console.error('supa.select error:', r.status, await r.text()); return []; }
     return r.json();
   },
   async insert(table, data) {
@@ -1737,7 +1739,11 @@ async function loadContainers() {
 
 async function loadLifts() {
   try {
-    const data = await supa.select('lifts', { order: 'created_at.desc' });
+    // Exclude photos column to avoid 500 error (photos are too large for bulk fetch)
+    const data = await supa.select('lifts', {
+      order: 'created_at.desc',
+      cols: 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at'
+    });
     if (Array.isArray(data)) {
       lifts = data.map(l => ({ ...l, ts: new Date(l.created_at) }));
       if (currentUser.role === 'driver') {
@@ -1997,7 +2003,7 @@ function updateDriverHero() {
   const myLifts = lifts.filter(l => l.driver === currentUser.name && isToday(l.ts));
   document.getElementById('hk-today').textContent = myLifts.length;
   document.getElementById('hk-containers').textContent = myLifts.reduce((s,l)=>s+l.qty,0);
-  document.getElementById('hk-photos').textContent = myLifts.reduce((s,l)=>s+(l.photos?.length||0),0);
+  document.getElementById('hk-photos').textContent = myLifts.reduce((s,l)=>s+(l._photos?.length||0),0);
 }
 window.updateDriverHero = updateDriverHero;
 
@@ -2333,9 +2339,9 @@ function renderDriverList() {
           ${l.contract ? `<span style="color:var(--muted);">📄 ${l.contract}</span>` : ''}
           ${l.maps_url ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;text-decoration:none;">📍 موقع</a>` : ''}
         </div>
-        ${l.photos && l.photos.length ? `
+        ${l._photosLoaded && l._photos?.length ? `
         <div class="lift-photos">
-          ${l.photos.map(src=>`<img src="${src}" onclick="openLightbox('${src}')" alt="">`).join('')}
+          ${l._photos.map(src=>`<img src="${src}" onclick="openLightbox('${src}')" alt="">`).join('')}
         </div>` : ''}
         ${l.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:5px;">💬 ${l.notes}</div>` : ''}
       </div>
@@ -2425,7 +2431,7 @@ function renderMgmt() {
   setEl('k-cont',  base.reduce((s,l)=>s+l.qty,0));
   setEl('k-clients', new Set(base.map(l=>l.client).filter(Boolean)).size);
   setEl('k-trucks',  new Set(base.map(l=>l.truck).filter(Boolean)).size);
-  setEl('k-photos',  base.reduce((s,l)=>s+(l.photos?.length||0),0));
+  setEl('k-photos',  base.reduce((s,l)=>s+(l._photos?.length||0),0));
 
   // Driver filter
   const drivers = [...new Set(lifts.map(l=>l.driver).filter(Boolean))];
@@ -2458,9 +2464,9 @@ function renderMgmt() {
         <td><span class="d-badge">👤 ${l.driver}</span></td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.truck||'—'}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.time}</td>
-        <td>${l.photos && l.photos.length
-          ? l.photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ')
-          : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
+        <td>${l._photosLoaded
+          ? (l._photos?.length ? l._photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ') : '<span style="color:var(--muted);font-size:11px;">—</span>')
+          : `<button onclick="loadLiftPhotos('${l.id}',this)" style="background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;">📷 صور</button>`}</td>
         <td>${l.maps_url
           ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📍 خريطة</a>`
           : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
@@ -2693,6 +2699,29 @@ async function parseAndImportCSV(text) {
   toast('تم استيراد ' + ok + ' عميل' + (fail ? ' — فشل ' + fail : ''), ok > 0 ? 'ok' : 'err');
 }
 window.parseAndImportCSV = parseAndImportCSV;
+
+
+async function loadLiftPhotos(liftId, btn) {
+  if (btn) btn.textContent = '⏳';
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/lifts?select=id,photos&id=eq.${liftId}`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    const data = await r.json();
+    if (Array.isArray(data) && data[0]) {
+      const lift = lifts.find(l => l.id === liftId);
+      if (lift) {
+        lift._photos = data[0].photos || [];
+        lift._photosLoaded = true;
+        renderMgmt();
+      }
+    }
+  } catch(e) {
+    if (btn) btn.textContent = '📷 صور';
+  }
+}
+window.loadLiftPhotos = loadLiftPhotos;
 
 function exportContainersCSV() {
   if (!containers.length) { toast('⚠️ لا توجد حاويات للتصدير','err'); return; }
