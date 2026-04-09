@@ -1525,9 +1525,13 @@ async function launchApp() {
   showLoader(true);
   try {
     const timeout = (ms) => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
-    await Promise.race([loadSettings(), timeout(5000)]).catch(e => console.warn('loadSettings:', e));
-    await Promise.race([loadContainers(), timeout(8000)]).catch(e => console.warn('loadContainers:', e));
-    await Promise.race([loadLifts(), timeout(8000)]).catch(e => console.warn('loadLifts:', e));
+    await Promise.race([loadSettings(), timeout(8000)]).catch(e => console.warn('loadSettings:', e));
+    await Promise.race([loadContainers(), timeout(12000)]).catch(e => console.warn('loadContainers:', e));
+    // Try loadLifts twice in case first attempt fails
+    await Promise.race([loadLifts(), timeout(12000)]).catch(async (e) => {
+      console.warn('loadLifts first attempt:', e);
+      await Promise.race([loadLifts(), timeout(12000)]).catch(e2 => console.warn('loadLifts second attempt:', e2));
+    });
   } catch(e) {
     console.error('launchApp error:', e);
   } finally {
@@ -1542,10 +1546,13 @@ async function launchApp() {
 
   if (currentUser.role === 'mgmt') {
     goPage('mgmt');
+    // Force re-render after a short delay to ensure data is displayed
+    setTimeout(() => { renderMgmt(); }, 300);
   } else {
     document.getElementById('tab-mgmt').style.display = 'none';
     goPage('driver');
     updateDriverHero();
+    setTimeout(() => { renderDriverList(); updateDriverHero(); }, 300);
   }
   setNowTime();
 }
@@ -1736,7 +1743,7 @@ async function loadLifts() {
       if (currentUser.role === 'driver') {
         renderDriverList();
         updateDriverHero();
-      } else {
+      } else if (currentUser.role === 'mgmt') {
         renderMgmt();
       }
     }
