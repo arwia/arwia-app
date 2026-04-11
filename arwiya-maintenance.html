@@ -795,16 +795,20 @@ async function renderMyParts() {
 
 async function confirmReceive(id) {
   if (!confirm('تأكيد استلام هذه القطعة؟')) return;
-  const updated = await api('maint_purchase_requests','PATCH',{ status:'received', received_at:new Date().toISOString() },`?id=eq.${id}`);
-  const orderId = updated?.[0]?.order_id;
+  // أولاً: اجلب order_id قبل التحديث
+  const req = await api('maint_purchase_requests','GET',null,`?id=eq.${id}&select=id,order_id`);
+  const orderId = req?.[0]?.order_id || null;
+  // ثانياً: حدّث حالة القطعة
+  await api('maint_purchase_requests','PATCH',{ status:'received', received_at:new Date().toISOString() },`?id=eq.${id}`);
+  // ثالثاً: تحقق هل كل قطع الأمر استُلمت
   if (orderId) {
-    const allReqs = await api('maint_purchase_requests','GET',null,`?order_id=eq.${orderId}&select=status`);
-    const allReceived = allReqs.every(r => r.status === 'received');
+    const allReqs = await api('maint_purchase_requests','GET',null,`?order_id=eq.${orderId}&select=id,status`);
+    const allReceived = allReqs.length > 0 && allReqs.every(r => r.status === 'received');
     if (allReceived) {
       await api('maint_orders','PATCH',{ status:'in_progress' },`?id=eq.${orderId}`);
       showToast('تم استلام جميع القطع — أمر العمل انتقل إلى جاري الإصلاح ✓');
     } else {
-      const remaining = allReqs.filter(r=>r.status!=='received').length;
+      const remaining = allReqs.filter(r => r.status !== 'received').length;
       showToast(`تم الاستلام ✓ — تبقى ${remaining} قطعة لم تُستلم بعد`);
     }
   } else {
