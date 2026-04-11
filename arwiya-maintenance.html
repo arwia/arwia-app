@@ -795,8 +795,22 @@ async function renderMyParts() {
 
 async function confirmReceive(id) {
   if (!confirm('تأكيد استلام هذه القطعة؟')) return;
-  await api('maint_purchase_requests','PATCH',{ status:'received', received_at:new Date().toISOString() },`?id=eq.${id}`);
-  showToast('تم تأكيد الاستلام ✓'); renderMyParts();
+  const updated = await api('maint_purchase_requests','PATCH',{ status:'received', received_at:new Date().toISOString() },`?id=eq.${id}`);
+  const orderId = updated?.[0]?.order_id;
+  if (orderId) {
+    const allReqs = await api('maint_purchase_requests','GET',null,`?order_id=eq.${orderId}&select=status`);
+    const allReceived = allReqs.every(r => r.status === 'received');
+    if (allReceived) {
+      await api('maint_orders','PATCH',{ status:'in_progress' },`?id=eq.${orderId}`);
+      showToast('تم استلام جميع القطع — أمر العمل انتقل إلى جاري الإصلاح ✓');
+    } else {
+      const remaining = allReqs.filter(r=>r.status!=='received').length;
+      showToast(`تم الاستلام ✓ — تبقى ${remaining} قطعة لم تُستلم بعد`);
+    }
+  } else {
+    showToast('تم تأكيد الاستلام ✓');
+  }
+  renderMyParts();
 }
 
 async function openPurchaseReqModal() {
@@ -821,30 +835,99 @@ async function savePurchaseReq() {
 }
 
 // ======================== REPORTS (admin only) ========================
+let reportAsset = 'all';
+let reportDateFrom = '';
+let reportDateTo = '';
+
 async function renderReports() {
   try {
     const [orders, assets] = await Promise.all([
-      api('maint_orders','GET',null,'?select=asset_id,actual_cost,status,order_type,maint_assets(code)'),
-      api('maint_assets','GET',null,'?select=id,code')
+      api('maint_orders','GET',null,'?select=*,maint_assets(code,asset_type)&order=closed_at.desc'),
+      api('maint_assets','GET',null,'?select=id,code,asset_type&order=code'),
     ]);
-    const done = orders.filter(o=>o.status==='done');
-    const costByAsset = {};
-    const countByAsset = {};
-    done.forEach(o=>{ const k=o.maint_assets?.code||'غير معروف'; costByAsset[k]=(costByAsset[k]||0)+(o.actual_cost||0); countByAsset[k]=(countByAsset[k]||0)+1; });
-    const sorted = Object.entries(costByAsset).sort((a,b)=>b[1]-a[1]);
-    const maxCost = sorted[0]?.[1]||1;
-    let html = `<div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">إجمالي التكاليف</div><div class="stat-value">${done.reduce((s,o)=>s+(o.actual_cost||0),0).toLocaleString('ar-SA',{maximumFractionDigits:0})}</div><div class="stat-sub">ريال سعودي</div></div>
-      <div class="stat-card"><div class="stat-label">أوامر منتهية</div><div class="stat-value">${done.length}</div></div>
-      <div class="stat-card"><div class="stat-label">صيانة تصحيحية</div><div class="stat-value">${orders.filter(o=>o.order_type==='corrective').length}</div></div>
-      <div class="stat-card"><div class="stat-label">صيانة وقائية</div><div class="stat-value">${orders.filter(o=>o.order_type==='preventive').length}</div></div>
-    </div><div class="table-wrap"><div class="table-header"><div class="table-title">التكلفة حسب الأصل</div></div><div style="padding:16px 18px">`;
-    if (!sorted.length) html += `<div class="empty-state" style="padding:20px"><p>لا توجد بيانات بعد</p></div>`;
-    else sorted.forEach(([code,cost])=>{
-      const pct=Math.round((cost/maxCost)*100);
-      html += `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">${code}</span><span style="font-size:13px;color:var(--text2)">${cost.toLocaleString('ar-SA',{maximumFractionDigits:0})} ر.س · ${countByAsset[code]} أمر</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div></div>`;
+
+    // Filters
+    let filtered = orders.filter(o=>o.status==='done');
+    if (reportAsset !== 'all') filtered = filtered.filter(o=>o.asset_id===reportAsset);
+    if (reportDateFrom) filtered = filtered.filter(o=>o.closed_at&&o.closed_at>=reportDateFrom);
+    if (reportDateTo)   filtered = filtered.filter(o=>o.closed_at&&o.closed_at<=reportDateTo+'T23:59:59');
+
+    const totalCost = filtered.reduce((s,o)=>s+(o.actual_cost||0),0);
+
+    // Per-asset breakdown
+    const byAsset = {};
+    filtered.forEach(o=>{
+      const k = o.maint_assets?.code||'—';
+      if (!byAsset[k]) byAsset[k]={cost:0,count:0,corrective:0,preventive:0};
+      byAsset[k].cost += o.actual_cost||0;
+      byAsset[k].count++;
+      byAsset[k][o.order_type==='preventive'?'preventive':'corrective']++;
+    });
+    const sorted = Object.entries(byAsset).sort((a,b)=>b[1].cost-a[1].cost);
+    const maxCost = sorted[0]?.[1].cost||1;
+
+    let html = `
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end">
+      <div class="form-group" style="flex:1;min-width:160px">
+        <label class="form-label">الأصل</label>
+        <select class="form-control" onchange="reportAsset=this.value;renderReports()">
+          <option value="all" ${reportAsset==='all'?'selected':''}>الكل</option>
+          ${assets.map(a=>`<option value="${a.id}" ${reportAsset===a.id?'selected':''}>${a.asset_type==='truck'?'🚛':'📦'} ${a.code}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group" style="flex:1;min-width:140px">
+        <label class="form-label">من تاريخ</label>
+        <input type="date" class="form-control" value="${reportDateFrom}" onchange="reportDateFrom=this.value;renderReports()">
+      </div>
+      <div class="form-group" style="flex:1;min-width:140px">
+        <label class="form-label">إلى تاريخ</label>
+        <input type="date" class="form-control" value="${reportDateTo}" onchange="reportDateTo=this.value;renderReports()">
+      </div>
+      <button class="btn btn-ghost" onclick="reportAsset='all';reportDateFrom='';reportDateTo='';renderReports()">مسح الفلاتر</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card accent"><div class="stat-label">إجمالي التكاليف</div><div class="stat-value">${totalCost.toLocaleString('ar-SA',{maximumFractionDigits:0})}</div><div class="stat-sub">ريال سعودي</div></div>
+      <div class="stat-card"><div class="stat-label">أوامر منتهية</div><div class="stat-value">${filtered.length}</div></div>
+      <div class="stat-card"><div class="stat-label">تصحيحية</div><div class="stat-value">${filtered.filter(o=>o.order_type==='corrective').length}</div></div>
+      <div class="stat-card"><div class="stat-label">وقائية</div><div class="stat-value">${filtered.filter(o=>o.order_type==='preventive').length}</div></div>
+    </div>`;
+
+    // Bar chart per asset
+    html += `<div class="table-wrap" style="margin-bottom:20px">
+      <div class="table-header"><div class="table-title">التكلفة حسب الأصل</div></div>
+      <div style="padding:16px 18px">`;
+    if (!sorted.length) html += `<div class="empty-state" style="padding:20px"><p>لا توجد بيانات في هذا النطاق</p></div>`;
+    else sorted.forEach(([code,d])=>{
+      const pct=Math.round((d.cost/maxCost)*100);
+      html += `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600">${code}</span>
+          <span style="font-size:12px;color:var(--text2)">${d.cost.toLocaleString('ar-SA',{maximumFractionDigits:0})} ر.س &nbsp;|&nbsp; ${d.count} أمر (${d.corrective} تصحيحي · ${d.preventive} وقائي)</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+      </div>`;
     });
     html += `</div></div>`;
+
+    // Detailed orders table
+    html += `<div class="table-wrap">
+      <div class="table-header"><div class="table-title">تفاصيل أوامر العمل المنتهية</div></div>
+      <table><thead><tr><th>رقم</th><th>الأصل</th><th>العنوان</th><th>النوع</th><th>تاريخ الإغلاق</th><th>التكلفة الفعلية</th></tr></thead><tbody>`;
+    if (!filtered.length) html += `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">لا توجد بيانات</td></tr>`;
+    else filtered.forEach(o=>{
+      const d = o.closed_at ? new Date(o.closed_at).toLocaleDateString('ar-SA') : '—';
+      html += `<tr>
+        <td><b>#${o.order_number}</b></td>
+        <td>${o.maint_assets?.code||'—'}</td>
+        <td>${o.title}</td>
+        <td>${o.order_type==='preventive'?'🛡️ وقائية':'🔧 تصحيحية'}</td>
+        <td class="td-muted">${d}</td>
+        <td style="font-weight:600;color:var(--accent)">${o.actual_cost?o.actual_cost.toLocaleString('ar-SA')+' ر.س':'—'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+
     document.getElementById('content').innerHTML = html;
   } catch(e) { document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`; }
 }
