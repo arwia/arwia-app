@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أروية — إدارة الصيانة</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161b27;
+  --bg3: #1e2535;
+  --bg4: #252d3f;
+  --border: #2e3a52;
+  --text: #e8edf5;
+  --text2: #8a96a8;
+  --text3: #5a6478;
+  --accent: #3d7fff;
+  --accent2: #2563d4;
+  --green: #22c55e;
+  --green-bg: #0f2d1c;
+  --amber: #f59e0b;
+  --amber-bg: #2a1f06;
+  --red: #ef4444;
+  --red-bg: #2a0f0f;
+  --purple: #a78bfa;
+  --purple-bg: #1e1535;
+  --teal: #14b8a6;
+  --teal-bg: #0a2420;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans Arabic', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* Layout */
+#app { display: flex; height: 100vh; overflow: hidden; }
+#sidebar { width: 220px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+#main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+/* Sidebar */
+.sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-logo .logo-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.sidebar-logo .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.nav-section { padding: 12px 10px 4px; font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: var(--radius-sm); cursor: pointer; margin: 1px 6px; color: var(--text2); transition: all 0.15s; font-size: 13px; }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--accent2); color: #fff; }
+.nav-item .nav-icon { width: 16px; text-align: center; font-size: 15px; }
+.nav-badge { margin-right: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
+
+/* Header */
+#topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+#topbar h1 { font-size: 17px; font-weight: 600; flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-success { background: var(--green); color: #fff; }
+
+/* Content */
+#content { padding: 24px; flex: 1; }
+
+/* Cards */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.stat-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-weight: 500; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+.stat-card.accent { border-color: var(--accent); }
+.stat-card.green { border-color: var(--green); }
+.stat-card.amber { border-color: var(--amber); }
+.stat-card.red { border-color: var(--red); }
+
+/* Table */
+.table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.table-title { font-size: 14px; font-weight: 600; flex: 1; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+th { padding: 10px 18px; text-align: right; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+td { padding: 11px 18px; font-size: 13px; color: var(--text); }
+.td-muted { color: var(--text2); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: #0f1f3d; color: var(--accent); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-teal { background: var(--teal-bg); color: var(--teal); }
+.badge-gray { background: var(--bg3); color: var(--text2); }
+
+/* Forms */
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 24px; width: 560px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-full { grid-column: 1/-1; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.form-control { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; color: var(--text); font-family: inherit; font-size: 13px; outline: none; transition: border-color 0.15s; }
+.form-control:focus { border-color: var(--accent); }
+select.form-control option { background: var(--bg3); }
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* Search */
+.search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+.search-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 14px; color: var(--text); font-family: inherit; font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--accent); }
+.filter-select { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; color: var(--text); font-family: inherit; font-size: 13px; outline: none; min-width: 140px; }
+
+/* Alert */
+.alert { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.alert-amber { background: var(--amber-bg); border: 1px solid #4a3008; color: var(--amber); }
+.alert-red { background: var(--red-bg); border: 1px solid #4a1010; color: var(--red); }
+
+/* Progress */
+.progress-bar { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+/* Empty */
+.empty-state { text-align: center; padding: 60px 24px; color: var(--text3); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; width: fit-content; }
+.tab { padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text2); font-weight: 500; transition: all 0.15s; }
+.tab.active { background: var(--accent); color: #fff; }
+.tab:hover:not(.active) { color: var(--text); background: var(--bg3); }
+
+/* Asset card */
+.asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.asset-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.15s; }
+.asset-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.asset-card.status-maintenance { border-right: 3px solid var(--amber); }
+.asset-card.status-active { border-right: 3px solid var(--green); }
+.asset-card.status-retired { border-right: 3px solid var(--text3); opacity: 0.6; }
+.asset-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.asset-code { font-size: 18px; font-weight: 700; color: var(--text); }
+.asset-name { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.asset-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+.asset-meta-item .label { font-size: 10px; color: var(--text3); }
+.asset-meta-item .value { font-size: 13px; color: var(--text); font-weight: 500; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: var(--text3); }
+
+/* Toast */
+#toast { position: fixed; bottom: 24px; left: 24px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 18px; font-size: 13px; box-shadow: var(--shadow); z-index: 999; transform: translateY(100px); opacity: 0; transition: all 0.3s; max-width: 320px; }
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: var(--green); color: var(--green); }
+#toast.error { border-color: var(--red); color: var(--red); }
+
+/* Dashboard specific */
+.dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.order-mini { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.order-mini:last-child { border-bottom: none; }
+.order-mini-num { font-size: 11px; color: var(--text3); min-width: 32px; }
+.order-mini-title { font-size: 13px; flex: 1; }
+.order-mini-asset { font-size: 11px; color: var(--text2); }
+
+.part-mini { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.part-mini:last-child { border-bottom: none; }
+.part-mini-name { flex: 1; font-size: 13px; }
+.part-mini-qty { font-size: 13px; font-weight: 600; }
+
+@media (max-width: 768px) {
+  #sidebar { width: 52px; }
+  .sidebar-logo, .nav-section, .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .dash-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-name">🔧 أروية</div>
+      <div class="logo-sub">إدارة الصيانة</div>
+    </div>
+    <div class="nav-section">الرئيسية</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span><span>لوحة التحكم</span>
+    </div>
+    <div class="nav-section">الصيانة</div>
+    <div class="nav-item" onclick="navigate('assets')">
+      <span class="nav-icon">🚛</span><span>الأصول</span>
+    </div>
+    <div class="nav-item" onclick="navigate('orders')">
+      <span class="nav-icon">📋</span><span>أوامر العمل</span>
+      <span class="nav-badge" id="open-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="navigate('schedules')">
+      <span class="nav-icon">📅</span><span>الصيانة الدورية</span>
+    </div>
+    <div class="nav-section">المشتريات</div>
+    <div class="nav-item" onclick="navigate('parts')">
+      <span class="nav-icon">⚙️</span><span>قطع الغيار</span>
+    </div>
+    <div class="nav-item" onclick="navigate('purchases')">
+      <span class="nav-icon">🛒</span><span>طلبات الشراء</span>
+      <span class="nav-badge" id="purchase-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-section">التقارير</div>
+    <div class="nav-item" onclick="navigate('reports')">
+      <span class="nav-icon">📈</span><span>التقارير</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="main">
+    <div id="topbar">
+      <h1 id="page-title">لوحة التحكم</h1>
+      <div id="topbar-actions"></div>
+    </div>
+    <div id="content">
+      <div class="loading">⏳ جاري الاتصال...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-backdrop" id="modal-asset">
+  <div class="modal">
+    <div class="modal-title" id="modal-asset-title">إضافة أصل جديد</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">النوع *</label>
+        <select class="form-control" id="a-type">
+          <option value="truck">شاحنة / سيارة</option>
+          <option value="container">حاوية</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الرقم / اللوحة *</label>
+        <input class="form-control" id="a-code" placeholder="مثال: 4952 أو C-001">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">الوصف / الاسم</label>
+        <input class="form-control" id="a-name" placeholder="مثال: شاحنة رافعة كبيرة">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الماركة</label>
+        <input class="form-control" id="a-brand" placeholder="مثال: هينو">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الموديل</label>
+        <input class="form-control" id="a-model">
+      </div>
+      <div class="form-group">
+        <label class="form-label">سنة الصنع</label>
+        <input class="form-control" id="a-year" type="number" placeholder="2020">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الحالة</label>
+        <select class="form-control" id="a-status">
+          <option value="active">نشط</option>
+          <option value="maintenance">في الصيانة</option>
+          <option value="retired">متقاعد</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">عداد الكيلومترات</label>
+        <input class="form-control" id="a-odo" type="number" placeholder="0">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-control" id="a-notes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-asset')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveAsset()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-order">
+  <div class="modal">
+    <div class="modal-title" id="modal-order-title">أمر عمل جديد</div>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label class="form-label">الأصل *</label>
+        <select class="form-control" id="o-asset"></select>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">العنوان / وصف العطل *</label>
+        <input class="form-control" id="o-title" placeholder="مثال: تسريب زيت محرك">
+      </div>
+      <div class="form-group">
+        <label class="form-label">النوع</label>
+        <select class="form-control" id="o-type">
+          <option value="corrective">تصحيحية</option>
+          <option value="preventive">وقائية</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الأولوية</label>
+        <select class="form-control" id="o-priority">
+          <option value="low">منخفضة</option>
+          <option value="medium">متوسطة</option>
+          <option value="high">عالية</option>
+          <option value="critical">حرجة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الفني المسؤول</label>
+        <input class="form-control" id="o-assigned" placeholder="اسم الفني">
+      </div>
+      <div class="form-group">
+        <label class="form-label">مقدم البلاغ</label>
+        <input class="form-control" id="o-reporter">
+      </div>
+      <div class="form-group">
+        <label class="form-label">التكلفة التقديرية (ر.س)</label>
+        <input class="form-control" id="o-est-cost" type="number" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">عداد الكيلومترات</label>
+        <input class="form-control" id="o-odo" type="number" placeholder="0">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">تفاصيل إضافية</label>
+        <textarea class="form-control" id="o-desc" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-order')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveOrder()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-part">
+  <div class="modal">
+    <div class="modal-title">إضافة قطعة غيار</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">رقم القطعة</label>
+        <input class="form-control" id="p-num" placeholder="اختياري">
+      </div>
+      <div class="form-group">
+        <label class="form-label">اسم القطعة *</label>
+        <input class="form-control" id="p-name" placeholder="مثال: فلتر زيت">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الفئة</label>
+        <input class="form-control" id="p-cat" placeholder="مثال: محرك، فرامل...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">وحدة القياس</label>
+        <select class="form-control" id="p-unit">
+          <option value="piece">قطعة</option>
+          <option value="liter">لتر</option>
+          <option value="kg">كيلو</option>
+          <option value="meter">متر</option>
+          <option value="set">طقم</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الكمية الحالية</label>
+        <input class="form-control" id="p-qty" type="number" value="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الحد الأدنى للتنبيه</label>
+        <input class="form-control" id="p-min" type="number" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">سعر الوحدة (ر.س)</label>
+        <input class="form-control" id="p-cost" type="number" value="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">المورد</label>
+        <input class="form-control" id="p-supplier">
+      </div>
+      <div class="form-group">
+        <label class="form-label">موقع في المستودع</label>
+        <input class="form-control" id="p-loc" placeholder="مثال: رف A-3">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-part')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePart()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-purchase">
+  <div class="modal">
+    <div class="modal-title">طلب شراء جديد</div>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label class="form-label">الصنف المطلوب *</label>
+        <input class="form-control" id="pr-item" placeholder="اسم القطعة أو المادة">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الكمية *</label>
+        <input class="form-control" id="pr-qty" type="number" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">السعر التقديري للوحدة</label>
+        <input class="form-control" id="pr-cost" type="number" value="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">المورد المقترح</label>
+        <input class="form-control" id="pr-supplier">
+      </div>
+      <div class="form-group">
+        <label class="form-label">مرتبط بأمر عمل</label>
+        <select class="form-control" id="pr-order">
+          <option value="">— لا يوجد —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">طالب الشراء</label>
+        <input class="form-control" id="pr-by">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-control" id="pr-notes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-purchase')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePurchase()">إرسال الطلب</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://jducltqmguqtndltawrw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkdWNsdHFtZ3VxdG5kbHRhd3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTUwODQsImV4cCI6MjA5MDU5MTA4NH0.offeytDxO1wmPU9yvKbR3B974tgHX4uNUj4lEAqT8I8';
+
+let currentPage = 'dashboard';
+let editingId = null;
+
+async function api(table, method='GET', body=null, query='') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : 'return=representation'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) {
+    const e = await r.text();
+    throw new Error(e);
+  }
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 3000);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId = null; }
+
+// Status/Priority helpers
+const statusLabel = { open:'مفتوح', in_progress:'جاري', waiting_parts:'انتظار قطع', done:'منتهي', cancelled:'ملغي' };
+const statusBadge = { open:'badge-blue', in_progress:'badge-amber', waiting_parts:'badge-purple', done:'badge-green', cancelled:'badge-gray' };
+const priorityLabel = { low:'منخفضة', medium:'متوسطة', high:'عالية', critical:'حرجة' };
+const priorityBadge = { low:'badge-gray', medium:'badge-blue', high:'badge-amber', critical:'badge-red' };
+const assetTypeLabel = { truck:'شاحنة', container:'حاوية' };
+const assetStatusLabel = { active:'نشط', maintenance:'صيانة', retired:'متقاعد' };
+const assetStatusBadge = { active:'badge-green', maintenance:'badge-amber', retired:'badge-gray' };
+const purchaseStatusLabel = { pending:'قيد المراجعة', approved:'معتمد', ordered:'طُلب', received:'استُلم', cancelled:'ملغي' };
+const purchaseStatusBadge = { pending:'badge-amber', approved:'badge-blue', ordered:'badge-purple', received:'badge-green', cancelled:'badge-gray' };
+
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[onclick="navigate('${page}')"]`).classList.add('active');
+  renderPage(page);
+}
+
+async function renderPage(page) {
+  const content = document.getElementById('content');
+  const title = document.getElementById('page-title');
+  const actions = document.getElementById('topbar-actions');
+  content.innerHTML = '<div class="loading">⏳ جاري التحميل...</div>';
+  actions.innerHTML = '';
+
+  const pages = {
+    dashboard: ['لوحة التحكم', renderDashboard, ''],
+    assets: ['الأصول', renderAssets, '<button class="btn btn-primary" onclick="openAssetModal()">+ إضافة أصل</button>'],
+    orders: ['أوامر العمل', renderOrders, '<button class="btn btn-primary" onclick="openOrderModal()">+ أمر عمل جديد</button>'],
+    schedules: ['الصيانة الدورية', renderSchedules, ''],
+    parts: ['قطع الغيار', renderParts, '<button class="btn btn-primary" onclick="openPartModal()">+ إضافة قطعة</button>'],
+    purchases: ['طلبات الشراء', renderPurchases, '<button class="btn btn-primary" onclick="openPurchaseModal()">+ طلب شراء</button>'],
+    reports: ['التقارير', renderReports, ''],
+  };
+  const [t, fn, act] = pages[page] || pages.dashboard;
+  title.textContent = t;
+  actions.innerHTML = act;
+  await fn();
+}
+
+// ======================== DASHBOARD ========================
+async function renderDashboard() {
+  try {
+    const [assets, orders, parts, purchases] = await Promise.all([
+      api('maint_assets', 'GET', null, '?select=status,asset_type'),
+      api('maint_orders', 'GET', null, '?select=status,priority,actual_cost,created_at'),
+      api('maint_parts', 'GET', null, '?select=name,qty_on_hand,qty_minimum'),
+      api('maint_purchase_requests', 'GET', null, '?select=status,created_at&order=created_at.desc&limit=5')
+    ]);
+
+    const openOrders = orders.filter(o => ['open','in_progress','waiting_parts'].includes(o.status));
+    const criticalOrders = orders.filter(o => o.priority === 'critical' && o.status !== 'done');
+    const lowStockParts = parts.filter(p => p.qty_on_hand <= p.qty_minimum);
+    const totalCost = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.actual_cost||0),0);
+    const inMaintenance = assets.filter(a => a.status === 'maintenance').length;
+
+    // Update badges
+    const ob = document.getElementById('open-badge');
+    ob.textContent = openOrders.length;
+    ob.style.display = openOrders.length > 0 ? '' : 'none';
+    const pb = document.getElementById('purchase-badge');
+    const pendingPurch = await api('maint_purchase_requests','GET',null,'?select=id&status=eq.pending') || [];
+    pb.textContent = pendingPurch.length;
+    pb.style.display = pendingPurch.length > 0 ? '' : 'none';
+
+    let html = '';
+
+    if (criticalOrders.length > 0) {
+      html += `<div class="alert alert-red">⚠️ يوجد ${criticalOrders.length} أمر عمل بأولوية حرجة يحتاج اهتمامًا فوريًا</div>`;
+    }
+    if (lowStockParts.length > 0) {
+      html += `<div class="alert alert-amber">📦 ${lowStockParts.length} قطعة وصلت الحد الأدنى في المخزون</div>`;
+    }
+
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">إجمالي الأصول</div><div class="stat-value">${assets.length}</div><div class="stat-sub">${assets.filter(a=>a.asset_type==='truck').length} شاحنة · ${assets.filter(a=>a.asset_type==='container').length} حاوية</div></div>
+      <div class="stat-card amber"><div class="stat-label">أوامر مفتوحة</div><div class="stat-value">${openOrders.length}</div><div class="stat-sub">${inMaintenance} أصل في الصيانة</div></div>
+      <div class="stat-card red"><div class="stat-label">قطع ناقصة</div><div class="stat-value">${lowStockParts.length}</div><div class="stat-sub">أقل من الحد الأدنى</div></div>
+      <div class="stat-card accent"><div class="stat-label">إجمالي تكاليف الصيانة</div><div class="stat-value">${totalCost.toLocaleString('ar-SA',{maximumFractionDigits:0})}</div><div class="stat-sub">ريال سعودي</div></div>
+    </div>`;
+
+    // Recent orders + low stock
+    const recentOrders = await api('maint_orders','GET',null,'?select=order_number,title,status,priority,asset_id,maint_assets(code)&order=created_at.desc&limit=6');
+    html += `<div class="dash-row">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">آخر أوامر العمل</div><button class="btn btn-ghost btn-sm" onclick="navigate('orders')">عرض الكل</button></div>
+        <div style="padding:0 18px">`;
+    if (recentOrders.length === 0) {
+      html += `<div class="empty-state" style="padding:30px"><p>لا توجد أوامر عمل بعد</p></div>`;
+    } else {
+      recentOrders.forEach(o => {
+        html += `<div class="order-mini">
+          <span class="order-mini-num">#${o.order_number}</span>
+          <div style="flex:1"><div class="order-mini-title">${o.title}</div><div class="order-mini-asset">${o.maint_assets?.code||'—'}</div></div>
+          <span class="badge ${statusBadge[o.status]}">${statusLabel[o.status]}</span>
+        </div>`;
+      });
+    }
+    html += `</div></div>`;
+
+    const lowParts = parts.filter(p=>p.qty_on_hand<=p.qty_minimum).slice(0,6);
+    html += `<div class="table-wrap">
+      <div class="table-header"><div class="table-title">قطع الغيار الناقصة</div><button class="btn btn-ghost btn-sm" onclick="navigate('parts')">عرض الكل</button></div>
+      <div style="padding:0 18px">`;
+    if (lowParts.length===0) {
+      html += `<div class="empty-state" style="padding:30px"><p>المخزون ممتاز ✓</p></div>`;
+    } else {
+      lowParts.forEach(p => {
+        const pct = p.qty_minimum>0 ? Math.min(100,Math.round((p.qty_on_hand/p.qty_minimum)*100)) : 0;
+        html += `<div class="part-mini">
+          <div class="part-mini-name">${p.name}</div>
+          <div style="text-align:left;min-width:80px">
+            <div class="progress-bar" style="margin-bottom:3px"><div class="progress-fill" style="width:${pct}%;background:${pct<30?'var(--red)':'var(--amber)'}"></div></div>
+            <span class="part-mini-qty" style="color:${p.qty_on_hand===0?'var(--red)':'var(--amber)'}">${p.qty_on_hand}</span><span style="color:var(--text3);font-size:11px"> / ${p.qty_minimum}</span>
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div></div></div>`;
+
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ خطأ في الاتصال: ${e.message}<br><small>تأكد من تشغيل SQL Schema أولاً في Supabase</small></div>`;
+  }
+}
+
+// ======================== ASSETS ========================
+let assetsFilter = 'all';
+async function renderAssets() {
+  try {
+    const assets = await api('maint_assets','GET',null,'?select=*&order=asset_type,code');
+    let filtered = assets;
+    if (assetsFilter !== 'all') filtered = assets.filter(a => a.asset_type === assetsFilter);
+
+    let html = `<div class="tabs">
+      <div class="tab ${assetsFilter==='all'?'active':''}" onclick="assetsFilter='all';renderAssets()">الكل (${assets.length})</div>
+      <div class="tab ${assetsFilter==='truck'?'active':''}" onclick="assetsFilter='truck';renderAssets()">شاحنات (${assets.filter(a=>a.asset_type==='truck').length})</div>
+      <div class="tab ${assetsFilter==='container'?'active':''}" onclick="assetsFilter='container';renderAssets()">حاويات (${assets.filter(a=>a.asset_type==='container').length})</div>
+    </div>`;
+
+    if (filtered.length === 0) {
+      html += `<div class="empty-state"><div class="icon">🚛</div><p>لا يوجد أصول مسجلة بعد</p></div>`;
+    } else {
+      html += `<div class="asset-grid">`;
+      filtered.forEach(a => {
+        html += `<div class="asset-card status-${a.status}" onclick="editAsset('${a.id}')">
+          <div class="asset-header">
+            <div>
+              <div class="asset-code">${a.asset_type==='truck'?'🚛':'📦'} ${a.code}</div>
+              <div class="asset-name">${a.name||a.brand||'—'}</div>
+            </div>
+            <span class="badge ${assetStatusBadge[a.status]}">${assetStatusLabel[a.status]}</span>
+          </div>
+          <div class="asset-meta">
+            <div class="asset-meta-item"><div class="label">النوع</div><div class="value">${assetTypeLabel[a.asset_type]}</div></div>
+            <div class="asset-meta-item"><div class="label">الماركة</div><div class="value">${a.brand||'—'}</div></div>
+            ${a.asset_type==='truck'?`<div class="asset-meta-item"><div class="label">الكيلومترات</div><div class="value">${(a.odometer_km||0).toLocaleString()}</div></div>`:''}
+            <div class="asset-meta-item"><div class="label">سنة الصنع</div><div class="value">${a.year||'—'}</div></div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`;
+  }
+}
+
+function openAssetModal(data=null) {
+  editingId = data?.id || null;
+  document.getElementById('modal-asset-title').textContent = data ? 'تعديل الأصل' : 'إضافة أصل جديد';
+  ['type','code','name','brand','model','status','notes'].forEach(f => {
+    document.getElementById(`a-${f}`).value = data?.[f==='type'?'asset_type':f] || (f==='status'?'active':'');
+  });
+  document.getElementById('a-year').value = data?.year||'';
+  document.getElementById('a-odo').value = data?.odometer_km||0;
+  openModal('modal-asset');
+}
+
+async function editAsset(id) {
+  const assets = await api('maint_assets','GET',null,`?id=eq.${id}`);
+  if (assets?.length) openAssetModal(assets[0]);
+}
+
+async function saveAsset() {
+  const body = {
+    asset_type: document.getElementById('a-type').value,
+    code: document.getElementById('a-code').value.trim(),
+    name: document.getElementById('a-name').value.trim(),
+    brand: document.getElementById('a-brand').value.trim(),
+    model: document.getElementById('a-model').value.trim(),
+    year: parseInt(document.getElementById('a-year').value)||null,
+    status: document.getElementById('a-status').value,
+    odometer_km: parseFloat(document.getElementById('a-odo').value)||0,
+    notes: document.getElementById('a-notes').value.trim(),
+  };
+  if (!body.code) return showToast('الرجاء إدخال رقم الأصل','error');
+  try {
+    if (editingId) await api('maint_assets','PATCH',body,`?id=eq.${editingId}`);
+    else await api('maint_assets','POST',body);
+    closeModal('modal-asset');
+    showToast('تم الحفظ بنجاح ✓');
+    renderAssets();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ======================== ORDERS ========================
+let ordersFilter = 'open';
+async function renderOrders() {
+  try {
+    const orders = await api('maint_orders','GET',null,'?select=*,maint_assets(code,asset_type)&order=created_at.desc');
+    let filtered = ordersFilter === 'all' ? orders : orders.filter(o =>
+      ordersFilter === 'open' ? ['open','in_progress','waiting_parts'].includes(o.status) : o.status === ordersFilter
+    );
+
+    const counts = {
+      open: orders.filter(o=>['open','in_progress','waiting_parts'].includes(o.status)).length,
+      done: orders.filter(o=>o.status==='done').length,
+      all: orders.length
+    };
+
+    let html = `<div class="tabs">
+      <div class="tab ${ordersFilter==='open'?'active':''}" onclick="ordersFilter='open';renderOrders()">نشطة (${counts.open})</div>
+      <div class="tab ${ordersFilter==='done'?'active':''}" onclick="ordersFilter='done';renderOrders()">منتهية (${counts.done})</div>
+      <div class="tab ${ordersFilter==='all'?'active':''}" onclick="ordersFilter='all';renderOrders()">الكل (${counts.all})</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>رقم</th><th>الأصل</th><th>العنوان</th><th>النوع</th><th>الأولوية</th><th>الحالة</th><th>الفني</th><th>التكلفة</th><th>إجراء</th>
+        </tr></thead><tbody>`;
+
+    if (filtered.length === 0) {
+      html += `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">لا توجد أوامر عمل</td></tr>`;
+    } else {
+      filtered.forEach(o => {
+        const typeIcon = o.order_type === 'preventive' ? '🛡️' : '🔧';
+        html += `<tr>
+          <td><b>#${o.order_number}</b></td>
+          <td>${o.maint_assets?.code||'—'} <span style="font-size:10px;color:var(--text3)">${o.maint_assets?.asset_type==='truck'?'🚛':'📦'}</span></td>
+          <td>${o.title}</td>
+          <td>${typeIcon} ${o.order_type==='preventive'?'وقائية':'تصحيحية'}</td>
+          <td><span class="badge ${priorityBadge[o.priority]}">${priorityLabel[o.priority]}</span></td>
+          <td><span class="badge ${statusBadge[o.status]}">${statusLabel[o.status]}</span></td>
+          <td class="td-muted">${o.assigned_to||'—'}</td>
+          <td>${o.actual_cost?(o.actual_cost.toLocaleString('ar-SA'))+' ر.س':'—'}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="editOrder('${o.id}')">تعديل</button> ${o.status!=='done'?`<button class="btn btn-success btn-sm" onclick="closeOrder('${o.id}')">إغلاق</button>`:''}</td>
+        </tr>`;
+      });
+    }
+    html += `</tbody></table></div>`;
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`;
+  }
+}
+
+async function openOrderModal(data=null) {
+  editingId = data?.id || null;
+  document.getElementById('modal-order-title').textContent = data ? 'تعديل أمر العمل' : 'أمر عمل جديد';
+  const assets = await api('maint_assets','GET',null,'?select=id,code,asset_type&status=neq.retired&order=code');
+  const sel = document.getElementById('o-asset');
+  sel.innerHTML = assets.map(a=>`<option value="${a.id}" ${data?.asset_id===a.id?'selected':''}>${a.asset_type==='truck'?'🚛':'📦'} ${a.code}</option>`).join('');
+  ['title','type','priority','assigned','notes'].forEach(f => {
+    const el = document.getElementById(`o-${f}`);
+    if (el) el.value = data?.[f==='type'?'order_type':f==='assigned'?'assigned_to':f==='notes'?'description':f] || (f==='priority'?'medium':f==='type'?'corrective':'');
+  });
+  document.getElementById('o-reporter').value = data?.reported_by||'';
+  document.getElementById('o-est-cost').value = data?.estimated_cost||0;
+  document.getElementById('o-odo').value = data?.odometer_at_report||0;
+  document.getElementById('o-desc').value = data?.description||'';
+  openModal('modal-order');
+}
+
+async function editOrder(id) {
+  const orders = await api('maint_orders','GET',null,`?id=eq.${id}`);
+  if (orders?.length) openOrderModal(orders[0]);
+}
+
+async function closeOrder(id) {
+  const cost = prompt('أدخل التكلفة الفعلية (ر.س):','0');
+  if (cost === null) return;
+  await api('maint_orders','PATCH',{ status:'done', actual_cost:parseFloat(cost)||0, closed_at:new Date().toISOString() },`?id=eq.${id}`);
+  showToast('تم إغلاق أمر العمل ✓');
+  renderOrders();
+}
+
+async function saveOrder() {
+  const body = {
+    asset_id: document.getElementById('o-asset').value,
+    title: document.getElementById('o-title').value.trim(),
+    order_type: document.getElementById('o-type').value,
+    priority: document.getElementById('o-priority').value,
+    assigned_to: document.getElementById('o-assigned').value.trim(),
+    reported_by: document.getElementById('o-reporter').value.trim(),
+    estimated_cost: parseFloat(document.getElementById('o-est-cost').value)||0,
+    odometer_at_report: parseFloat(document.getElementById('o-odo').value)||null,
+    description: document.getElementById('o-desc').value.trim(),
+  };
+  if (!body.title || !body.asset_id) return showToast('يرجى ملء الحقول المطلوبة','error');
+  try {
+    if (editingId) await api('maint_orders','PATCH',body,`?id=eq.${editingId}`);
+    else { body.status = 'open'; await api('maint_orders','POST',body); }
+    closeModal('modal-order');
+    showToast('تم الحفظ ✓');
+    renderOrders();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ======================== SCHEDULES ========================
+async function renderSchedules() {
+  document.getElementById('content').innerHTML = `<div class="empty-state"><div class="icon">📅</div><p>الصيانة الدورية — قيد التطوير</p><p style="margin-top:8px;font-size:12px">ستتضمن جدولة الصيانة الوقائية وتنبيهات الكيلومترات</p></div>`;
+}
+
+// ======================== PARTS ========================
+async function renderParts() {
+  try {
+    const parts = await api('maint_parts','GET',null,'?select=*&order=name');
+    const lowStock = parts.filter(p=>p.qty_on_hand<=p.qty_minimum);
+
+    let html = '';
+    if (lowStock.length) html += `<div class="alert alert-amber">📦 ${lowStock.length} قطعة وصلت للحد الأدنى: ${lowStock.map(p=>p.name).join('، ')}</div>`;
+
+    html += `<div class="table-wrap"><table>
+      <thead><tr><th>رقم القطعة</th><th>الاسم</th><th>الفئة</th><th>الكمية</th><th>الحد الأدنى</th><th>سعر الوحدة</th><th>المورد</th><th>الموقع</th><th>إجراء</th></tr></thead><tbody>`;
+
+    if (parts.length===0) {
+      html += `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">لا توجد قطع غيار مسجلة</td></tr>`;
+    } else {
+      parts.forEach(p => {
+        const low = p.qty_on_hand <= p.qty_minimum;
+        const zero = p.qty_on_hand === 0;
+        html += `<tr>
+          <td class="td-muted">${p.part_number||'—'}</td>
+          <td><b>${p.name}</b></td>
+          <td class="td-muted">${p.category||'—'}</td>
+          <td><span style="color:${zero?'var(--red)':low?'var(--amber)':'var(--green)'};font-weight:600">${p.qty_on_hand}</span> ${p.unit}</td>
+          <td class="td-muted">${p.qty_minimum}</td>
+          <td class="td-muted">${p.unit_cost?p.unit_cost.toLocaleString()+'  ر.س':'—'}</td>
+          <td class="td-muted">${p.supplier||'—'}</td>
+          <td class="td-muted">${p.location||'—'}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="editPart('${p.id}')">تعديل</button></td>
+        </tr>`;
+      });
+    }
+    html += `</tbody></table></div>`;
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`;
+  }
+}
+
+function openPartModal() { editingId=null; ['num','name','cat','loc','supplier'].forEach(f=>document.getElementById(`p-${f}`).value=''); document.getElementById('p-qty').value=0; document.getElementById('p-min').value=1; document.getElementById('p-cost').value=0; document.getElementById('p-unit').value='piece'; openModal('modal-part'); }
+
+async function editPart(id) {
+  const r = await api('maint_parts','GET',null,`?id=eq.${id}`);
+  if (!r?.length) return;
+  const p = r[0]; editingId = id;
+  document.getElementById('p-num').value=p.part_number||'';
+  document.getElementById('p-name').value=p.name||'';
+  document.getElementById('p-cat').value=p.category||'';
+  document.getElementById('p-unit').value=p.unit||'piece';
+  document.getElementById('p-qty').value=p.qty_on_hand||0;
+  document.getElementById('p-min').value=p.qty_minimum||0;
+  document.getElementById('p-cost').value=p.unit_cost||0;
+  document.getElementById('p-supplier').value=p.supplier||'';
+  document.getElementById('p-loc').value=p.location||'';
+  openModal('modal-part');
+}
+
+async function savePart() {
+  const body = { part_number:document.getElementById('p-num').value.trim(), name:document.getElementById('p-name').value.trim(), category:document.getElementById('p-cat').value.trim(), unit:document.getElementById('p-unit').value, qty_on_hand:parseFloat(document.getElementById('p-qty').value)||0, qty_minimum:parseFloat(document.getElementById('p-min').value)||0, unit_cost:parseFloat(document.getElementById('p-cost').value)||0, supplier:document.getElementById('p-supplier').value.trim(), location:document.getElementById('p-loc').value.trim() };
+  if (!body.name) return showToast('يرجى إدخال اسم القطعة','error');
+  try {
+    if (editingId) await api('maint_parts','PATCH',body,`?id=eq.${editingId}`);
+    else await api('maint_parts','POST',body);
+    closeModal('modal-part'); showToast('تم الحفظ ✓'); renderParts();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ======================== PURCHASES ========================
+async function renderPurchases() {
+  try {
+    const pr = await api('maint_purchase_requests','GET',null,'?select=*,maint_orders(order_number,title)&order=created_at.desc');
+    let html = `<div class="table-wrap"><table>
+      <thead><tr><th>رقم</th><th>الصنف</th><th>الكمية</th><th>التكلفة التقديرية</th><th>المورد</th><th>مرتبط بأمر</th><th>الطالب</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>`;
+    if (pr.length===0) {
+      html += `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">لا توجد طلبات شراء</td></tr>`;
+    } else {
+      pr.forEach(p => {
+        const total = (p.qty_requested||0)*(p.unit_cost_estimated||0);
+        html += `<tr>
+          <td><b>#${p.request_number}</b></td>
+          <td>${p.item_name}</td>
+          <td>${p.qty_requested}</td>
+          <td>${total?total.toLocaleString()+' ر.س':'—'}</td>
+          <td class="td-muted">${p.supplier||'—'}</td>
+          <td class="td-muted">${p.maint_orders?'#'+p.maint_orders.order_number:'—'}</td>
+          <td class="td-muted">${p.requested_by||'—'}</td>
+          <td><span class="badge ${purchaseStatusBadge[p.status]}">${purchaseStatusLabel[p.status]}</span></td>
+          <td>
+            ${p.status==='pending'?`<button class="btn btn-success btn-sm" onclick="updatePurchase('${p.id}','approved')">اعتماد</button>`:''} 
+            ${p.status==='approved'?`<button class="btn btn-primary btn-sm" onclick="updatePurchase('${p.id}','ordered')">تم الطلب</button>`:''}
+            ${p.status==='ordered'?`<button class="btn btn-ghost btn-sm" onclick="updatePurchase('${p.id}','received')">استُلم</button>`:''}
+          </td>
+        </tr>`;
+      });
+    }
+    html += `</tbody></table></div>`;
+    document.getElementById('content').innerHTML = html;
+  } catch(e) { document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`; }
+}
+
+async function openPurchaseModal() {
+  editingId = null;
+  ['item','supplier','notes'].forEach(f=>document.getElementById(`pr-${f}`).value='');
+  document.getElementById('pr-qty').value=1;
+  document.getElementById('pr-cost').value=0;
+  document.getElementById('pr-by').value='';
+  const orders = await api('maint_orders','GET',null,'?select=id,order_number,title&status=neq.done&order=order_number.desc');
+  document.getElementById('pr-order').innerHTML = `<option value="">— لا يوجد —</option>` + orders.map(o=>`<option value="${o.id}">#${o.order_number} - ${o.title}</option>`).join('');
+  openModal('modal-purchase');
+}
+
+async function savePurchase() {
+  const body = { item_name:document.getElementById('pr-item').value.trim(), qty_requested:parseFloat(document.getElementById('pr-qty').value)||1, unit_cost_estimated:parseFloat(document.getElementById('pr-cost').value)||0, supplier:document.getElementById('pr-supplier').value.trim(), order_id:document.getElementById('pr-order').value||null, requested_by:document.getElementById('pr-by').value.trim(), notes:document.getElementById('pr-notes').value.trim(), status:'pending' };
+  if (!body.item_name) return showToast('يرجى إدخال الصنف المطلوب','error');
+  try { await api('maint_purchase_requests','POST',body); closeModal('modal-purchase'); showToast('تم إرسال طلب الشراء ✓'); renderPurchases(); } catch(e) { showToast(e.message,'error'); }
+}
+
+async function updatePurchase(id, status) {
+  await api('maint_purchase_requests','PATCH',{ status, ...(status==='received'?{received_at:new Date().toISOString()}:{}) },`?id=eq.${id}`);
+  showToast(`تم تحديث الحالة إلى: ${purchaseStatusLabel[status]} ✓`);
+  renderPurchases();
+}
+
+// ======================== REPORTS ========================
+async function renderReports() {
+  try {
+    const [orders, assets] = await Promise.all([
+      api('maint_orders','GET',null,'?select=asset_id,actual_cost,status,order_type,maint_assets(code,asset_type)'),
+      api('maint_assets','GET',null,'?select=id,code,asset_type')
+    ]);
+
+    const done = orders.filter(o=>o.status==='done');
+    const costByAsset = {};
+    const countByAsset = {};
+    done.forEach(o=>{
+      const k = o.maint_assets?.code||'غير معروف';
+      costByAsset[k]=(costByAsset[k]||0)+(o.actual_cost||0);
+      countByAsset[k]=(countByAsset[k]||0)+1;
+    });
+
+    const sorted = Object.entries(costByAsset).sort((a,b)=>b[1]-a[1]);
+    const maxCost = sorted[0]?.[1]||1;
+
+    let html = `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">إجمالي التكاليف</div><div class="stat-value">${done.reduce((s,o)=>s+(o.actual_cost||0),0).toLocaleString('ar-SA',{maximumFractionDigits:0})}</div><div class="stat-sub">ريال سعودي</div></div>
+      <div class="stat-card"><div class="stat-label">أوامر منتهية</div><div class="stat-value">${done.length}</div></div>
+      <div class="stat-card"><div class="stat-label">صيانة تصحيحية</div><div class="stat-value">${orders.filter(o=>o.order_type==='corrective').length}</div></div>
+      <div class="stat-card"><div class="stat-label">صيانة وقائية</div><div class="stat-value">${orders.filter(o=>o.order_type==='preventive').length}</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">التكلفة حسب الأصل</div></div>
+      <div style="padding:16px 18px">`;
+
+    if (sorted.length===0) {
+      html += `<div class="empty-state" style="padding:20px"><p>لا توجد بيانات تكاليف بعد</p></div>`;
+    } else {
+      sorted.forEach(([code,cost])=>{
+        const pct = Math.round((cost/maxCost)*100);
+        html += `<div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:500">${code}</span>
+            <span style="font-size:13px;color:var(--text2)">${cost.toLocaleString('ar-SA',{maximumFractionDigits:0})} ر.س · ${countByAsset[code]} أمر</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+        </div>`;
+      });
+    }
+    html += `</div></div>`;
+    document.getElementById('content').innerHTML = html;
+  } catch(e) { document.getElementById('content').innerHTML = `<div class="alert alert-red">❌ ${e.message}</div>`; }
+}
+
+// Init
+renderPage('dashboard');
+</script>
+</body>
+</html>
