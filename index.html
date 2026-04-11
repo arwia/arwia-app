@@ -1280,6 +1280,7 @@ tr:hover td { background:var(--green-pale); }
                     <th>صور</th>
                     <th>📍 GPS</th>
                     <th>ملاحظات</th>
+                    <th>تعديل</th>
                   </tr>
                 </thead>
                 <tbody id="m-tbody"></tbody>
@@ -2471,6 +2472,7 @@ function renderMgmt() {
           ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📍 خريطة</a>`
           : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
         <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||'—'}</td>
+        <td><button onclick="openEditLift('${l.id}')" style="background:var(--blue-pale);color:var(--blue);border:1px solid rgba(26,92,158,0.25);border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">✏️</button></td>
       </tr>
     `).join('');
   }
@@ -2723,6 +2725,96 @@ async function loadLiftPhotos(liftId, btn) {
 }
 window.loadLiftPhotos = loadLiftPhotos;
 
+
+/* ══════════════════════════════════════════
+   EDIT LIFT (MGMT ONLY)
+══════════════════════════════════════════ */
+let _editingLiftId = null;
+
+function openEditLift(id) {
+  const l = lifts.find(x => x.id === id);
+  if (!l) return;
+  _editingLiftId = id;
+
+  document.getElementById('edit-cnum').value     = l.cnum     || '';
+  document.getElementById('edit-client').value   = l.client   || '';
+  document.getElementById('edit-contract').value = l.contract || '';
+  document.getElementById('edit-loc').value      = l.loc      || '';
+  document.getElementById('edit-size').value     = l.size     || '2Y';
+  document.getElementById('edit-qty').value      = l.qty      || 1;
+  document.getElementById('edit-time').value     = l.time     || '';
+  document.getElementById('edit-driver').value   = l.driver   || '';
+  document.getElementById('edit-truck').value    = l.truck    || '';
+  document.getElementById('edit-notes').value    = l.notes    || '';
+
+  const modal = document.getElementById('edit-modal');
+  modal.style.display = 'flex';
+}
+window.openEditLift = openEditLift;
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+  _editingLiftId = null;
+}
+window.closeEditModal = closeEditModal;
+
+async function saveEditLift() {
+  if (!_editingLiftId) return;
+
+  const updates = {
+    cnum:     document.getElementById('edit-cnum').value.trim(),
+    client:   document.getElementById('edit-client').value.trim(),
+    contract: document.getElementById('edit-contract').value.trim(),
+    loc:      document.getElementById('edit-loc').value.trim(),
+    size:     document.getElementById('edit-size').value,
+    qty:      parseInt(document.getElementById('edit-qty').value) || 1,
+    time:     document.getElementById('edit-time').value,
+    driver:   document.getElementById('edit-driver').value.trim(),
+    truck:    document.getElementById('edit-truck').value.trim(),
+    notes:    document.getElementById('edit-notes').value.trim(),
+  };
+
+  if (!updates.cnum) { toast('⚠️ رقم الحاوية مطلوب', 'err'); return; }
+
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/lifts?id=eq.${_editingLiftId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify(updates)
+      }
+    );
+
+    if (r.ok) {
+      // Update local state
+      const idx = lifts.findIndex(x => x.id === _editingLiftId);
+      if (idx >= 0) {
+        lifts[idx] = { ...lifts[idx], ...updates };
+      }
+      closeEditModal();
+      renderMgmt();
+      toast('✅ تم حفظ التعديلات بنجاح', 'ok');
+    } else {
+      const err = await r.text();
+      toast('خطأ في الحفظ: ' + err.substring(0, 80), 'err');
+    }
+  } catch(e) {
+    toast('خطأ: ' + e.message, 'err');
+  }
+}
+window.saveEditLift = saveEditLift;
+
+// Close modal on backdrop click
+document.getElementById('edit-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
 function exportContainersCSV() {
   if (!containers.length) { toast('⚠️ لا توجد حاويات للتصدير','err'); return; }
   const hdr = ['رقم الحاوية','اسم العميل','رقم العقد','الموقع','المقاس','السعر السنوي (ريال)','خط العرض','خط الطول'];
@@ -2805,5 +2897,72 @@ window.toast = toast;
   }
 })();
 </script>
+
+<!-- ══ Edit Lift Modal ══ -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:20px;padding:28px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);" dir="rtl">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:18px;font-weight:800;">✏️ تعديل الرفعة</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+
+    <div style="display:grid;gap:14px;">
+      <div class="field">
+        <label>رقم الحاوية</label>
+        <input type="text" id="edit-cnum" class="fi" placeholder="رقم الحاوية">
+      </div>
+      <div class="field">
+        <label>اسم العميل</label>
+        <input type="text" id="edit-client" class="fi" placeholder="اسم العميل">
+      </div>
+      <div class="field">
+        <label>رقم العقد</label>
+        <input type="text" id="edit-contract" class="fi" placeholder="رقم العقد">
+      </div>
+      <div class="field">
+        <label>الموقع</label>
+        <input type="text" id="edit-loc" class="fi" placeholder="الموقع">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label>المقاس</label>
+          <select id="edit-size" class="fi">
+            <option value="240L">240 لتر</option>
+            <option value="2Y">2 يارده</option>
+            <option value="4Y">4 يارده</option>
+            <option value="6Y">6 يارده</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>العدد</label>
+          <input type="number" id="edit-qty" class="fi" min="1" value="1">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label>الوقت</label>
+          <input type="time" id="edit-time" class="fi">
+        </div>
+        <div class="field">
+          <label>السائق</label>
+          <input type="text" id="edit-driver" class="fi" placeholder="اسم السائق">
+        </div>
+      </div>
+      <div class="field">
+        <label>الشاحنة</label>
+        <input type="text" id="edit-truck" class="fi" placeholder="رقم الشاحنة">
+      </div>
+      <div class="field">
+        <label>ملاحظات</label>
+        <textarea id="edit-notes" class="fi" rows="2" placeholder="ملاحظات..."></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button onclick="saveEditLift()" style="flex:1;padding:13px;background:linear-gradient(135deg,#2aad62,#1d8a4d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">💾 حفظ التعديلات</button>
+      <button onclick="closeEditModal()" style="padding:13px 20px;background:var(--sand2);color:var(--dark);border:none;border-radius:12px;font-family:inherit;font-size:15px;cursor:pointer;">إلغاء</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
