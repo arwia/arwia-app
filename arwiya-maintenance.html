@@ -542,7 +542,7 @@ async function renderDashboard() {
     ob.textContent = openOrders.length;
     ob.style.display = openOrders.length > 0 ? '' : 'none';
     const pb = document.getElementById('purchase-badge');
-    const pendingPurch = await api('maint_purchase_requests','GET',null,'?select=id&status=eq.pending');
+    const pendingPurch = await api('maint_purchase_requests','GET',null,'?select=id&status=eq.pending') || [];
     pb.textContent = pendingPurch.length;
     pb.style.display = pendingPurch.length > 0 ? '' : 'none';
 
