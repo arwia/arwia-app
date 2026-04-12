@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تتبع الحاويات — أروية للخدمات</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f5f5f3;min-height:100vh;direction:rtl;color:#1a1a1a}
+.app{max-width:940px;margin:0 auto;padding:1rem}
+.header{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.header h1{font-size:18px;font-weight:600;color:#1a1a1a}
+.header p{font-size:12px;color:#888;margin-top:2px}
+.conn-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;vertical-align:middle}
+.conn-ok{background:#1D9E75}.conn-err{background:#E24B4A}.conn-loading{background:#EF9F27}
+.tabs{display:flex;gap:6px;margin-bottom:1rem;background:#ebebea;padding:4px;border-radius:10px}
+.tab{flex:1;padding:9px;text-align:center;font-size:13px;border:none;background:none;cursor:pointer;border-radius:7px;color:#666;font-family:inherit;font-weight:500;transition:all .15s}
+.tab.active{background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:13px;font-weight:600;color:#888;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid #f0f0ee;text-transform:uppercase;letter-spacing:.03em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.stat{background:#f5f5f3;border-radius:10px;padding:.9rem;text-align:center}
+.stat-num{font-size:24px;font-weight:600;color:#1a1a1a}
+.stat-lbl{font-size:11px;color:#888;margin-top:3px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;color:#666;font-weight:500}
+input,select{padding:9px 11px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a;font-family:inherit;width:100%;transition:border-color .15s}
+input:focus,select:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-family:inherit;transition:all .15s}
+.btn:hover{background:#f5f5f3}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:#1D9E75;color:#fff;border-color:#0F6E56}
+.btn-primary:hover{background:#0F6E56}
+.btn-danger{background:#E24B4A;color:#fff;border-color:#A32D2D;font-size:11px;padding:5px 10px}
+.btn-danger:hover{background:#A32D2D}
+.btn-sm{font-size:12px;padding:6px 11px}
+.search-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.search-bar input{flex:2;min-width:140px}
+.search-bar select{flex:1;min-width:110px}
+.container-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.c-card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1rem;transition:border-color .15s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.c-card:hover{border-color:#bbb}
+.c-num{font-size:18px;font-weight:600;margin-bottom:4px;color:#1a1a1a}
+.size-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.s6{background:#E6F1FB;color:#0C447C}.s8{background:#EAF3DE;color:#27500A}
+.s10{background:#FAEEDA;color:#633806}.s12{background:#FAECE7;color:#712B13}
+.sother{background:#F1EFE8;color:#444441}
+.loc-wh{background:#F1EFE8;color:#5F5E5A;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.loc-cl{background:#E1F5EE;color:#085041;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.c-actions{display:flex;gap:6px;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;padding:9px 11px;border-bottom:1px solid #f0f0ee;font-weight:600;font-size:11px;color:#888;background:#fafaf9;text-transform:uppercase;letter-spacing:.03em}
+td{padding:9px 11px;border-bottom:1px solid #f5f5f3;color:#1a1a1a;font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf9}
+.mv-badge{padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.mv-add{background:#EAF3DE;color:#27500A}.mv-transfer{background:#E6F1FB;color:#0C447C}
+.mv-return{background:#F1EFE8;color:#444441}.mv-client{background:#E1F5EE;color:#085041}
+.empty{text-align:center;padding:2.5rem;color:#aaa;font-size:14px}
+.loading-row{text-align:center;padding:2rem;color:#aaa;font-size:13px}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:92%;max-width:460px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1rem;padding-bottom:10px;border-bottom:1px solid #f0f0ee;color:#1a1a1a}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem;font-weight:500}
+.alert-success{background:#E1F5EE;color:#0F6E56;border:1px solid #9FE1CB}
+.alert-error{background:#FCEBEB;color:#A32D2D;border:1px solid #F09595}
+.hidden{display:none}
+@media(max-width:600px){
+  .stats{grid-template-columns:1fr 1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .search-bar{flex-direction:column}
+  .header{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>تتبع الحاويات <span class="conn-dot conn-loading" id="conn-dot"></span></h1>
+      <p id="conn-status">جاري الاتصال بقاعدة البيانات...</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddContainer()" id="btn-add" disabled>+ إضافة حاوية</button>
+  </div>
+
+  <div id="alert-box" class="hidden"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('containers')">الحاويات</button>
+    <button class="tab" onclick="switchTab('movements')">سجل الحركات</button>
+    <button class="tab" onclick="switchTab('clients')">العملاء</button>
+  </div>
+
+  <!-- Containers Tab -->
+  <div id="tab-containers">
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">إجمالي الحاويات</div></div>
+      <div class="stat"><div class="stat-num" id="s-deployed">—</div><div class="stat-lbl">عند عملاء</div></div>
+      <div class="stat"><div class="stat-num" id="s-wh">—</div><div class="stat-lbl">في المستودع</div></div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="srch" placeholder="بحث برقم الحاوية أو اسم العميل..." oninput="renderContainers()">
+      <select id="f-size" onchange="renderContainers()">
+        <option value="">كل المقاسات</option>
+        <option value="6">6 يارد</option>
+        <option value="8">8 يارد</option>
+        <option value="10">10 يارد</option>
+        <option value="12">12 يارد</option>
+        <option value="other">أخرى</option>
+      </select>
+      <select id="f-status" onchange="renderContainers()">
+        <option value="">الكل</option>
+        <option value="warehouse">المستودع</option>
+        <option value="client">عند عميل</option>
+      </select>
+    </div>
+    <div class="container-grid" id="c-grid">
+      <div class="loading-row" style="grid-column:1/-1"><span class="spin">⟳</span> جاري التحميل...</div>
+    </div>
+  </div>
+
+  <!-- Movements Tab -->
+  <div id="tab-movements" class="hidden">
+    <div class="card">
+      <div class="card-title">سجل الحركات</div>
+      <div class="search-bar">
+        <input type="text" id="m-srch" placeholder="بحث..." oninput="renderMovements()">
+        <select id="m-type" onchange="renderMovements()">
+          <option value="">كل الأنواع</option>
+          <option value="add">إضافة</option>
+          <option value="transfer">نقل</option>
+          <option value="return">إعادة</option>
+          <option value="client">تسليم</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الحاوية</th>
+              <th>النوع</th>
+              <th>من</th>
+              <th>إلى</th>
+              <th>ملاحظة</th>
+            </tr>
+          </thead>
+          <tbody id="m-tbody">
+            <tr><td colspan="6" class="loading-row"><span class="spin">⟳</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clients Tab -->
+  <div id="tab-clients" class="hidden">
+    <div class="card">
+      <div class="card-title">إضافة عميل جديد</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم العميل *</label>
+          <input type="text" id="cl-name" placeholder="اسم الشركة أو العميل">
+        </div>
+        <div class="form-group">
+          <label>رقم التواصل</label>
+          <input type="text" id="cl-phone" placeholder="05xxxxxxxx">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addClient()">إضافة عميل</button>
+    </div>
+    <div class="card">
+      <div class="card-title">قائمة العملاء</div>
+      <table>
+        <thead>
+          <tr><th>العميل</th><th>الهاتف</th><th>عدد الحاويات</th><th>إجراء</th></tr>
+        </thead>
+        <tbody id="cl-tbody">
+          <tr><td colspan="4" class="loading-row"><span class="spin">⟳</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Container Modal -->
+<div id="modal-add" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2>إضافة حاوية جديدة</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>رقم الحاوية *</label>
+        <input type="text" id="a-num" placeholder="مثال: 204">
+      </div>
+      <div class="form-group">
+        <label>المقاس *</label>
+        <select id="a-size">
+          <option value="6">6 يارد</option>
+          <option value="8">8 يارد</option>
+          <option value="10">10 يارد</option>
+          <option value="12">12 يارد</option>
+          <option value="other">أخرى</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>الموقع الحالي</label>
+      <select id="a-loc"></select>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>ملاحظة (اختياري)</label>
+      <input type="text" id="a-note" placeholder="...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-add')">إلغاء</button>
+      <button class="btn btn-primary" id="btn-save-add" onclick="addContainer()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Move Modal -->
+<div id="modal-move" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2>نقل حاوية <span id="mv-cnum" style="color:#888;font-weight:400"></span></h2>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>نقل إلى</label>
+      <select id="mv-to"></select>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>ملاحظة (اختياري)</label>
+      <input type="text" id="mv-note" placeholder="سبب النقل...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-move')">إلغاء</button>
+      <button class="btn btn-primary" id="btn-confirm-move" onclick="confirmMove()">تأكيد النقل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://jducltqmguqtndltawrw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkdWNsdHFtZ3VxdG5kbHRhd3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTUwODQsImV4cCI6MjA5MDU5MTA4NH0.offeytDxO1wmPU9yvKbR3B974tgHX4uNUj4lEAqT8I8';
+const H = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Prefer': 'return=representation'
+};
+
+let containers = [], clients = [], movements = [];
+let moveTargetId = null, moveTargetLoc = null;
+
+async function api(method, table, body, query = '') {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}${query}`, {
+    method,
+    headers: H,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function showAlert(msg, type) {
+  const b = document.getElementById('alert-box');
+  b.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  b.classList.remove('hidden');
+  setTimeout(() => b.classList.add('hidden'), 3500);
+}
+
+function setConn(state) {
+  const dot = document.getElementById('conn-dot');
+  const txt = document.getElementById('conn-status');
+  dot.className = 'conn-dot conn-' + state;
+  if (state === 'ok') {
+    txt.textContent = 'متصل بقاعدة البيانات ✓';
+    document.getElementById('btn-add').disabled = false;
+  } else if (state === 'err') {
+    txt.textContent = 'خطأ في الاتصال — تحقق من الإنترنت';
+  }
+}
+
+async function loadAll() {
+  try {
+    [containers, clients, movements] = await Promise.all([
+      api('GET', 'containers', null, '?order=created_at.asc'),
+      api('GET', 'container_clients', null, '?order=name.asc'),
+      api('GET', 'container_movements', null, '?order=created_at.desc&limit=500')
+    ]);
+    setConn('ok');
+    renderContainers();
+  } catch (e) {
+    setConn('err');
+    showAlert('خطأ في الاتصال: ' + e.message, 'error');
+  }
+}
+
+function getClientName(loc) {
+  if (loc === 'warehouse') return 'المستودع';
+  const c = clients.find(x => x.id === loc);
+  return c ? c.name : '—';
+}
+
+function sizeClass(s) {
+  return { '6': 's6', '8': 's8', '10': 's10', '12': 's12' }[String(s)] || 'sother';
+}
+
+function sizeLabel(s) {
+  return ['6','8','10','12'].includes(String(s)) ? s + ' يارد' : (s || 'غير محدد');
+}
+
+function updateStats() {
+  const total = containers.length;
+  const dep = containers.filter(c => c.location !== 'warehouse').length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-deployed').textContent = dep;
+  document.getElementById('s-wh').textContent = total - dep;
+}
+
+function renderContainers() {
+  updateStats();
+  const srch = (document.getElementById('srch').value || '').toLowerCase();
+  const fs = document.getElementById('f-size').value;
+  const fst = document.getElementById('f-status').value;
+  const grid = document.getElementById('c-grid');
+
+  let list = containers.filter(c => {
+    const cn = getClientName(c.location).toLowerCase();
+    const ms = !srch || c.num.toLowerCase().includes(srch) || cn.includes(srch);
+    const mz = !fs || String(c.size) === fs;
+    const mst = !fst || (fst === 'warehouse' ? c.location === 'warehouse' : c.location !== 'warehouse');
+    return ms && mz && mst;
+  });
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">لا توجد حاويات مطابقة</div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(c => {
+    const wh = c.location === 'warehouse';
+    return `<div class="c-card">
+      <div class="c-num">${c.num}</div>
+      <span class="size-badge ${sizeClass(c.size)}">${sizeLabel(c.size)}</span>
+      <div style="margin-bottom:6px">
+        ${wh ? `<span class="loc-wh">المستودع</span>` : `<span class="loc-cl">${getClientName(c.location)}</span>`}
+      </div>
+      <div class="c-actions">
+        <button class="btn btn-sm" onclick="openMove('${c.id}','${c.location}','${c.num}')">نقل</button>
+        <button class="btn btn-danger" onclick="deleteContainer('${c.id}','${c.num}')">حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMovements() {
+  const srch = (document.getElementById('m-srch')?.value || '').toLowerCase();
+  const ft = document.getElementById('m-type')?.value || '';
+  const tbody = document.getElementById('m-tbody');
+  const typeL = { add: 'إضافة', transfer: 'نقل', return: 'إعادة', client: 'تسليم' };
+  const typeC = { add: 'mv-add', transfer: 'mv-transfer', return: 'mv-return', client: 'mv-client' };
+
+  let list = movements.filter(m => {
+    const ms = !srch || m.container_num.includes(srch) ||
+      getClientName(m.from_location).toLowerCase().includes(srch) ||
+      getClientName(m.to_location).toLowerCase().includes(srch);
+    return ms && (!ft || m.type === ft);
+  });
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">لا توجد حركات</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(m => {
+    const d = new Date(m.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+    const t = new Date(m.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+    return `<tr>
+      <td><div>${d}</div><div style="color:#aaa;font-size:11px">${t}</div></td>
+      <td><strong>${m.container_num}</strong></td>
+      <td><span class="mv-badge ${typeC[m.type] || ''}">${typeL[m.type] || m.type}</span></td>
+      <td>${getClientName(m.from_location)}</td>
+      <td>${getClientName(m.to_location)}</td>
+      <td style="color:#888">${m.note || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderClients() {
+  const tbody = document.getElementById('cl-tbody');
+  if (!clients.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">لا يوجد عملاء بعد</td></tr>';
+    return;
+  }
+  tbody.innerHTML = clients.map(c => {
+    const cnt = containers.filter(x => x.location === c.id).length;
+    return `<tr>
+      <td>${c.name}</td>
+      <td style="color:#888">${c.phone || '—'}</td>
+      <td>${cnt}</td>
+      <td><button class="btn btn-danger" onclick="deleteClient('${c.id}','${c.name}',${cnt})">حذف</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function switchTab(tab) {
+  ['containers', 'movements', 'clients'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', ['containers', 'movements', 'clients'][i] === tab);
+  });
+  if (tab === 'movements') renderMovements();
+  if (tab === 'clients') renderClients();
+}
+
+function buildLocOpts(selected = 'warehouse') {
+  return `<option value="warehouse"${selected === 'warehouse' ? ' selected' : ''}>المستودع</option>` +
+    clients.map(c => `<option value="${c.id}"${selected === c.id ? ' selected' : ''}>${c.name}</option>`).join('');
+}
+
+function openAddContainer() {
+  document.getElementById('a-loc').innerHTML = buildLocOpts();
+  document.getElementById('a-num').value = '';
+  document.getElementById('a-note').value = '';
+  document.getElementById('modal-add').classList.remove('hidden');
+  setTimeout(() => document.getElementById('a-num').focus(), 100);
+}
+
+async function addContainer() {
+  const num = document.getElementById('a-num').value.trim();
+  const size = document.getElementById('a-size').value;
+  const location = document.getElementById('a-loc').value;
+  const note = document.getElementById('a-note').value.trim();
+  if (!num) { showAlert('أدخل رقم الحاوية', 'error'); return; }
+  if (containers.find(c => c.num === num)) { showAlert('رقم الحاوية موجود مسبقاً', 'error'); return; }
+  const btn = document.getElementById('btn-save-add');
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+  try {
+    const [nc] = await api('POST', 'containers', { num, size, location });
+    containers.push(nc);
+    await api('POST', 'container_movements', {
+      container_id: nc.id, container_num: num,
+      type: 'add', from_location: 'warehouse', to_location: location, note: note || null
+    });
+    movements.unshift({ container_num: num, type: 'add', from_location: 'warehouse', to_location: location, note: note || null, created_at: new Date().toISOString() });
+    closeModal('modal-add');
+    renderContainers();
+    showAlert('تم إضافة الحاوية ' + num, 'success');
+  } catch (e) { showAlert('خطأ: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'حفظ';
+}
+
+function openMove(id, loc, num) {
+  moveTargetId = id; moveTargetLoc = loc;
+  document.getElementById('mv-cnum').textContent = '— ' + num;
+  document.getElementById('mv-to').innerHTML = buildLocOpts(loc);
+  document.getElementById('mv-note').value = '';
+  document.getElementById('modal-move').classList.remove('hidden');
+}
+
+async function confirmMove() {
+  const to = document.getElementById('mv-to').value;
+  const note = document.getElementById('mv-note').value.trim();
+  if (to === moveTargetLoc) { showAlert('الحاوية موجودة بالفعل في هذا الموقع', 'error'); return; }
+  const btn = document.getElementById('btn-confirm-move');
+  btn.disabled = true; btn.textContent = 'جاري النقل...';
+  try {
+    const c = containers.find(x => x.id === moveTargetId);
+    let type = 'transfer';
+    if (to === 'warehouse') type = 'return';
+    else if (moveTargetLoc === 'warehouse') type = 'client';
+    await api('PATCH', 'containers', { location: to }, `?id=eq.${moveTargetId}`);
+    await api('POST', 'container_movements', {
+      container_id: moveTargetId, container_num: c.num,
+      type, from_location: moveTargetLoc, to_location: to, note: note || null
+    });
+    c.location = to;
+    movements.unshift({ container_num: c.num, type, from_location: moveTargetLoc, to_location: to, note: note || null, created_at: new Date().toISOString() });
+    closeModal('modal-move');
+    renderContainers();
+    showAlert('تم نقل الحاوية ' + c.num, 'success');
+  } catch (e) { showAlert('خطأ: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'تأكيد النقل';
+}
+
+async function deleteContainer(id, num) {
+  if (!confirm('هل تريد حذف الحاوية ' + num + '؟')) return;
+  try {
+    await api('DELETE', 'containers', null, `?id=eq.${id}`);
+    containers = containers.filter(c => c.id !== id);
+    renderContainers();
+    showAlert('تم حذف الحاوية', 'success');
+  } catch (e) { showAlert('خطأ: ' + e.message, 'error'); }
+}
+
+async function addClient() {
+  const name = document.getElementById('cl-name').value.trim();
+  const phone = document.getElementById('cl-phone').value.trim();
+  if (!name) { showAlert('أدخل اسم العميل', 'error'); return; }
+  if (clients.find(c => c.name === name)) { showAlert('العميل موجود مسبقاً', 'error'); return; }
+  try {
+    const [nc] = await api('POST', 'container_clients', { name, phone: phone || null });
+    clients.push(nc);
+    clients.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    document.getElementById('cl-name').value = '';
+    document.getElementById('cl-phone').value = '';
+    renderClients();
+    showAlert('تم إضافة العميل', 'success');
+  } catch (e) { showAlert('خطأ: ' + e.message, 'error'); }
+}
+
+async function deleteClient(id, name, cnt) {
+  if (cnt > 0) { showAlert('لا يمكن حذف عميل لديه ' + cnt + ' حاوية', 'error'); return; }
+  if (!confirm('حذف العميل ' + name + '؟')) return;
+  try {
+    await api('DELETE', 'container_clients', null, `?id=eq.${id}`);
+    clients = clients.filter(c => c.id !== id);
+    renderClients();
+    showAlert('تم حذف العميل', 'success');
+  } catch (e) { showAlert('خطأ: ' + e.message, 'error'); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+});
+
+loadAll();
+</script>
+</body>
+</html>
