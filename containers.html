@@ -43,8 +43,8 @@ input:focus,select:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px 
 .c-card:hover{border-color:#bbb}
 .c-num{font-size:18px;font-weight:600;margin-bottom:4px;color:#1a1a1a}
 .size-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
-.s6{background:#E6F1FB;color:#0C447C}.s8{background:#EAF3DE;color:#27500A}
-.s10{background:#FAEEDA;color:#633806}.s12{background:#FAECE7;color:#712B13}
+.s2{background:#EAF3DE;color:#27500A}.s4{background:#E6F1FB;color:#0C447C}
+.s6{background:#FAEEDA;color:#633806}.s240{background:#FAECE7;color:#712B13}
 .sother{background:#F1EFE8;color:#444441}
 .loc-wh{background:#F1EFE8;color:#5F5E5A;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
 .loc-cl{background:#E1F5EE;color:#085041;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
@@ -107,10 +107,10 @@ tr:hover td{background:#fafaf9}
       <input type="text" id="srch" placeholder="بحث برقم الحاوية أو اسم العميل..." oninput="renderContainers()">
       <select id="f-size" onchange="renderContainers()">
         <option value="">كل المقاسات</option>
+        <option value="2">2 يارد</option>
+        <option value="4">4 يارد</option>
         <option value="6">6 يارد</option>
-        <option value="8">8 يارد</option>
-        <option value="10">10 يارد</option>
-        <option value="12">12 يارد</option>
+        <option value="240">240 لتر</option>
         <option value="other">أخرى</option>
       </select>
       <select id="f-status" onchange="renderContainers()">
@@ -200,10 +200,10 @@ tr:hover td{background:#fafaf9}
       <div class="form-group">
         <label>المقاس *</label>
         <select id="a-size">
+          <option value="2">2 يارد</option>
+          <option value="4">4 يارد</option>
           <option value="6">6 يارد</option>
-          <option value="8">8 يارد</option>
-          <option value="10">10 يارد</option>
-          <option value="12">12 يارد</option>
+          <option value="240">240 لتر</option>
           <option value="other">أخرى</option>
         </select>
       </div>
@@ -307,11 +307,13 @@ function getClientName(loc) {
 }
 
 function sizeClass(s) {
-  return { '6': 's6', '8': 's8', '10': 's10', '12': 's12' }[String(s)] || 'sother';
+  return { '2': 's2', '4': 's4', '6': 's6', '240': 's240' }[String(s)] || 'sother';
 }
 
 function sizeLabel(s) {
-  return ['6','8','10','12'].includes(String(s)) ? s + ' يارد' : (s || 'غير محدد');
+  if (String(s) === '240') return '240 لتر';
+  if (['2','4','6'].includes(String(s))) return s + ' يارد';
+  return s || 'غير محدد';
 }
 
 function updateStats() {
