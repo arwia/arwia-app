@@ -2580,14 +2580,11 @@ function normalizeSize(raw) {
 }
 
 async function parseAndImportCSV(text) {
-  // Split lines
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
   if (lines.length < 2) { toast('⚠️ الملف فارغ', 'err'); return; }
 
-  // Clean a cell value
   const clean = s => (s == null ? '' : s.toString().replace(/^["'\s\u200f\u200e]+|["'\s\u200f\u200e]+$/g, '').trim());
 
-  // Split CSV line respecting quotes
   const splitCSV = (line) => {
     const res = []; let cur = '', inQ = false;
     for (const ch of line) {
@@ -2599,9 +2596,12 @@ async function parseAndImportCSV(text) {
     return res;
   };
 
-  const header = splitCSV(lines[0]).map(h => h.toLowerCase().replace(/\s+/g,''));
+  const rawHeader = splitCSV(lines[0]);
+  const header = rawHeader.map(h => h.toLowerCase().replace(/\s+/g,''));
 
-  // Find column by keywords
+  // Log header for debugging
+  console.log('Excel headers:', rawHeader);
+
   const col = (...terms) => {
     for (const t of terms) {
       const i = header.findIndex(h => h.includes(t.replace(/\s+/g,'')));
@@ -2610,28 +2610,28 @@ async function parseAndImportCSV(text) {
     return -1;
   };
 
-  // Detect columns — based on real file structure
-  const iClient = col('عميل', 'اسم', 'client');
-  const iPrice  = col('اجمالي', 'سعر', 'عقد', 'price', 'تكلفة');
+  const iClient = col('عميل', 'اسم', 'client', 'name');
+  const iPrice  = col('اجمالي', 'سعر', 'عقد', 'price', 'تكلفة', 'قيمة');
   const iSize   = col('مقاس', 'حجم', 'size');
-  // Find رقم الحاوية — search left to right, prefer exact match
   const iNum = (() => {
-    // First try: exact 'رقمالحاوية' or 'container'
     for (let i = 0; i < header.length; i++) {
-      const h = header[i];
-      if (h.includes('رقمالحاوية') || h.includes('container') || h === 'num') return i;
+      if (header[i].includes('رقمالحاوية') || header[i].includes('container') || header[i] === 'num') return i;
     }
-    // Second try: column has رقم AND is not the first column (serial م)
     for (let i = 1; i < header.length; i++) {
-      const h = header[i];
-      if ((h.includes('رقم') || h.includes('num')) && !h.includes('مقاس') && !h.includes('عقد') && !h.includes('عميل')) return i;
+      if ((header[i].includes('رقم') || header[i].includes('num')) && !header[i].includes('مقاس') && !header[i].includes('عقد') && !header[i].includes('عميل')) return i;
     }
     return -1;
   })();
 
-  if (iClient < 0) { toast('⚠️ لم أجد عمود اسم العميل في الملف', 'err'); return; }
+  console.log('Column indices — client:', iClient, 'price:', iPrice, 'size:', iSize, 'num:', iNum);
 
-  // Size mapping: number → code
+  if (iClient < 0) {
+    // Show raw data so user can see what columns exist
+    const preview = rawHeader.join(' | ');
+    toast('⚠️ لم أجد عمود العميل. الأعمدة الموجودة: ' + preview, 'err');
+    return;
+  }
+
   const toSize = (v) => {
     if (!v || v === '0') return '2Y';
     const s = v.toString().trim().toLowerCase().replace(/\s+/g,'');
@@ -2644,7 +2644,6 @@ async function parseAndImportCSV(text) {
     return map[s] || SZ_MAP[s] || '2Y';
   };
 
-  // Generate unique container number
   const used = new Set(containers.map(c => c.num));
   let counter = 1;
   const nextNum = () => {
@@ -2657,12 +2656,13 @@ async function parseAndImportCSV(text) {
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = splitCSV(lines[i]);
+    if (cols.length < 2) continue;
+
     const client = iClient >= 0 ? cols[iClient] || '' : '';
     if (!client) continue;
 
     const rawNum = iNum >= 0 ? cols[iNum] || '' : '';
     const numVal = rawNum.replace(/[^0-9]/g, '');
-    // Use existing number if valid and > 0, otherwise auto-generate
     let num;
     if (numVal && parseInt(numVal) > 0) {
       num = 'ARW-C-' + numVal.padStart(3, '0');
@@ -2670,24 +2670,36 @@ async function parseAndImportCSV(text) {
       num = nextNum();
     }
 
-    const size  = iSize  >= 0 ? toSize(cols[iSize])          : '2Y';
+    const size  = iSize  >= 0 ? toSize(cols[iSize])            : '2Y';
     const price = iPrice >= 0 ? (parseFloat(cols[iPrice]) || 0) : 0;
 
+    console.log('Row', i, '→ num:', num, 'client:', client, 'size:', size, 'price:', price);
     rows.push({ num, client, size, price, contract: '', loc: '' });
   }
 
   if (!rows.length) { toast('⚠️ لا توجد بيانات صالحة في الملف', 'err'); return; }
 
-  const newRows  = rows.filter(r => !containers.find(c => c.num === r.num));
-  const skipped  = rows.length - newRows.length;
+  // Show preview of first 3 rows before importing
+  const preview = rows.slice(0,3).map((r,i) =>
+    (i+1) + '. ' + r.num + ' — ' + r.client.substring(0,20) + ' — ' + SZ_LABEL[r.size]
+  ).join('\n');
 
-  const msg = 'سيتم استيراد ' + newRows.length + ' عميل' +
-    (skipped ? '\n(' + skipped + ' موجود مسبقاً سيُتجاهل)' : '') +
+  const newRows  = rows.filter(r => !containers.find(c => c.num === r.num));
+  const existing = rows.filter(r =>  containers.find(c => c.num === r.num));
+  const skipped  = existing.length;
+
+  const msg = 'معاينة أول 3 سجلات:\n' + preview +
+    '\n\n───────────────\n' +
+    'سيتم استيراد ' + newRows.length + ' عميل جديد' +
+    (skipped ? '\n(' + skipped + ' موجود مسبقاً — سيُحدَّث)' : '') +
     '\n\nهل تريد المتابعة؟';
+
   if (!confirm(msg)) return;
 
   toast('⏳ جاري الاستيراد...', 'ok');
-  let ok = 0, fail = 0;
+  let ok = 0, updated = 0, fail = 0;
+
+  // Insert new rows
   for (const row of newRows) {
     try {
       const res = await supa.insert('containers', {
@@ -2699,9 +2711,31 @@ async function parseAndImportCSV(text) {
     } catch(e) { fail++; }
   }
 
+  // Update existing rows (client + size + price)
+  for (const row of existing) {
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/containers?num=eq.${encodeURIComponent(row.num)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json', Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({ client: row.client, size: row.size, price: row.price })
+        }
+      );
+      if (r.ok) updated++;
+      else fail++;
+    } catch(e) { fail++; }
+  }
+
   await loadContainers();
   renderContainers();
-  toast('تم استيراد ' + ok + ' عميل' + (fail ? ' — فشل ' + fail : ''), ok > 0 ? 'ok' : 'err');
+  const msg2 = 'تم استيراد ' + ok + ' جديد' +
+    (updated ? ' وتحديث ' + updated : '') +
+    (fail ? ' — فشل ' + fail : '');
+  toast(msg2, ok > 0 || updated > 0 ? 'ok' : 'err');
 }
 window.parseAndImportCSV = parseAndImportCSV;
 
