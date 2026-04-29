@@ -933,11 +933,7 @@ tr:hover td { background:var(--green-pale); }
 </style>
 </head>
 <body>
-<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;">
-  <button onclick="setLang('ar')" id="btn-ar" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:11px;font-weight:800;cursor:pointer;">ع</button>
-  <button onclick="setLang('en')" id="btn-en" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">EN</button>
-  <button onclick="setLang('ur')" id="btn-ur" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">اردو</button>
-</div>
+<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;"><button onclick="setLang('ar')" id="btn-ar" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:11px;font-weight:800;cursor:pointer;">ع</button><button onclick="setLang('en')" id="btn-en" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">EN</button><button onclick="setLang('ur')" id="btn-ur" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">اردو</button></div>
 
 <!-- ══ Loading overlay ══ -->
 <div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(24,34,24,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:white;font-size:15px;font-weight:700;">
@@ -1501,28 +1497,36 @@ const MGMT_PASS = 'arwiya2024';
    LOGIN
 ══════════════════════════════════════════ */
 function setRole(r) {
-  currentRole = r;
-  document.getElementById('rt-driver').classList.toggle('active', r==='driver');
-  document.getElementById('rt-mgmt').classList.toggle('active', r==='mgmt');
-  document.getElementById('login-driver-fields').style.display = r==='driver' ? '' : 'none';
-  document.getElementById('login-mgmt-fields').style.display  = r==='mgmt'   ? '' : 'none';
+  window._selectedRole = r;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('rt-' + r);
+  if(tab) tab.classList.add('active');
+  const df = document.getElementById('login-driver-fields');
+  const mf = document.getElementById('login-mgmt-fields');
+  if(df) df.style.display = r==='driver' ? '' : 'none';
+  if(mf) mf.style.display = r==='mgmt' ? '' : 'none';
 }
 window.setRole = setRole;
 
+
 async function doLogin() {
-  if (currentRole === 'driver') {
-    const name  = document.getElementById('l-driver').value;
-    const truck = document.getElementById('l-truck').value;
-    if (!name || !truck) { toast('⚠️ يرجى اختيار الاسم والشاحنة','err'); return; }
-    currentUser = { role:'driver', name, truck };
-  } else {
-    const pass = document.getElementById('l-pass').value;
-    if (pass !== MGMT_PASS) { toast('❌ كلمة المرور غير صحيحة','err'); return; }
+  const role = window._selectedRole || 'driver';
+  if(role === 'mgmt') {
+    const pass = document.getElementById('l-pass')?.value || '';
+    if(pass !== MGMT_PASS) { toast('كلمة المرور غير صحيحة','err'); return; }
     currentUser = { role:'mgmt', name:'إدارة التشغيل' };
+  } else {
+    const dname = document.getElementById('l-driver')?.value || '';
+    const tnum  = document.getElementById('l-truck')?.value  || '';
+    if(!dname) { toast('اختر اسمك','err'); return; }
+    currentUser = { role:'driver', name:dname, truck:tnum };
+    localStorage.setItem('arwiya_driver', dname);
+    localStorage.setItem('arwiya_truck',  tnum);
   }
-  await launchApp();
+  launchApp();
 }
 window.doLogin = doLogin;
+
 
 async function launchApp() {
   document.getElementById('login-screen').style.display = 'none';
@@ -1747,7 +1751,7 @@ async function loadLifts() {
   try {
     const COLS = 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';
     const PAGE = 1000; let all = []; let offset = 0;
-    while (true) {
+    while(true) {
       const url = SUPABASE_URL+'/rest/v1/lifts?select='+COLS+'&order=created_at.desc&limit='+PAGE+'&offset='+offset;
       const rr = await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
       if(!rr.ok) break;
@@ -2241,10 +2245,9 @@ async function addLift() {
   if (!cnum)       { toast('⚠️ اختر رقم الحاوية','err'); return; }
   if (!chosenSize) { toast('⚠️ اختر مقاس الحاوية','err'); return; }
 
-  const _gps = pendingGPS || window._autoGPS || null;
-  const gps_lat  = _gps ? _gps.lat : null;
-  const gps_lng  = _gps ? _gps.lng : null;
-  const maps_url = _gps ? _gps.mapsUrl : null;
+  const _gps=pendingGPS||window._autoGPS||null; const gps_lat=_gps?_gps.lat:null;
+  const gps_lng=_gps?_gps.lng:null;
+  const maps_url=_gps?_gps.mapsUrl:null;
 
   try {
     // First insert the lift to get its ID, then upload photos
@@ -2367,8 +2370,8 @@ function getFilteredLifts() {
     const dStr = toLocalDate(l.ts);
     const d = new Date(l.ts);
     if (activePeriod === 'today') return dStr === todayStr;
-    if (activePeriod === 'week') { const sw=new Date(n); sw.setDate(n.getDate()-6); sw.setHours(0,0,0,0); return d>=sw; }
-    if (activePeriod === 'month') { const sm=new Date(n); sm.setDate(n.getDate()-29); sm.setHours(0,0,0,0); return d>=sm; }
+    if(activePeriod==='week'){const sw=new Date(n);sw.setDate(n.getDate()-6);sw.setHours(0,0,0,0);return d>=sw;}
+    if(activePeriod==='month'){const sm=new Date(n);sm.setDate(n.getDate()-29);sm.setHours(0,0,0,0);return d>=sm;}
     if (activePeriod === 'year') return d.getFullYear()===n.getFullYear();
     if (activePeriod === 'custom' && fd && td) return dStr >= fd && dStr <= td;
     return true;
@@ -2438,7 +2441,6 @@ function renderMgmt() {
         <td><span class="d-badge">👤 ${l.driver}</span></td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.truck||'—'}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.time}</td>
-        <td style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">${toLocalDate(l.ts)}</td>
         <td>${l._photosLoaded
           ? (l._photos?.length ? l._photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ') : '<span style="color:var(--muted);font-size:11px;">—</span>')
           : `<button onclick="loadLiftPhotos('${l.id}',this)" style="background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;">📷 صور</button>`}</td>
@@ -2908,47 +2910,12 @@ window.toast = toast;
   }
 })();
 
-
-/* ══ AUTO GPS WATCH ══ */
-(function(){
-  if(!navigator.geolocation) return;
-  navigator.geolocation.watchPosition(
-    function(p){ window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)}; },
-    function(e){ console.warn('GPS:',e.message); },
-    {enableHighAccuracy:true,maximumAge:30000}
-  );
-})();
-
-/* ══ MULTILINGUAL ══ */
-const LANG={
-  ar:{dir:'rtl',appName:'أروية للخدمات',appSub:'نظام متابعة رفع الحاويات',mgmtBtn:'إدارة التشغيل',driverBtn:'سائق',loginBtn:'دخول →',driverLbl:'اسم السائق',truckLbl:'رقم الشاحنة',passLbl:'كلمة المرور',passPlh:'أدخل كلمة مرور الإدارة',searchPlh:'🔍 اكتب رقم الحاوية أو اسم العميل...',logoutBtn:'خروج',today:'اليوم',week:'آخر 7 أيام',month:'آخر 30 يوماً',year:'هذا العام'},
-  en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking System',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',driverLbl:'Driver Name',truckLbl:'Truck Number',passLbl:'Password',passPlh:'Enter management password',searchPlh:'🔍 Search container or client...',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},
-  ur:{dir:'rtl',appName:'اروية سروسز',appSub:'کنٹینر لفٹ ٹریکنگ سسٹم',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائیور',loginBtn:'داخل ہوں →',driverLbl:'ڈرائیور کا نام',truckLbl:'ٹرک نمبر',passLbl:'پاس ورڈ',passPlh:'انتظامی پاس ورڈ',searchPlh:'🔍 کنٹینر یا کلائنٹ تلاش کریں...',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال'}
-};
+(function(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(function(p){window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)};},function(e){},{ enableHighAccuracy:true,maximumAge:30000});})();
+const LANG={ar:{dir:'rtl',appName:'أروية للخدمات',appSub:'نظام متابعة رفع الحاويات',mgmtBtn:'إدارة التشغيل',driverBtn:'سائق',logoutBtn:'خروج',today:'اليوم',week:'آخر 7 أيام',month:'آخر 30 يوماً',year:'هذا العام',searchPlh:'🔍 اكتب رقم الحاوية أو اسم العميل...'},en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking System',mgmtBtn:'Management',driverBtn:'Driver',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year',searchPlh:'🔍 Search container or client...'},ur:{dir:'rtl',appName:'اروية سروسز',appSub:'کنٹینر لفٹ ٹریکنگ',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائیور',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال',searchPlh:'🔍 تلاش کریں...'}};
 let currentLang=localStorage.getItem('arwiya_lang')||'ar';
-function setLang(lang){currentLang=lang;localStorage.setItem('arwiya_lang',lang);_applyLang();}
-window.setLang=setLang;
-function _applyLang(){
-  const L=LANG[currentLang];if(!L)return;
-  document.documentElement.dir=L.dir;
-  ['ar','en','ur'].forEach(l=>{const b=document.getElementById('btn-'+l);if(b)b.style.background=l===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});
-  const _t=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
-  const _p=(id,txt)=>{const e=document.getElementById(id);if(e)e.placeholder=txt;};
-  _t('.app-name',L.appName);_t('.app-sub',L.appSub);
-  _t('#rt-mgmt .role-label',L.mgmtBtn);_t('#rt-driver .role-label',L.driverBtn);
-  _p('l-pass',L.passPlh);_p('f-cnum-search',L.searchPlh);
-  const logoutEl=document.querySelector('button[onclick="doLogout()"]');if(logoutEl)logoutEl.textContent=L.logoutBtn;
-  const periodMap={today:L.today,week:L.week,month:L.month,year:L.year};
-  document.querySelectorAll('.period-btn').forEach(b=>{
-    const m=b.getAttribute('onclick')?.match(/'(\w+)'/);
-    if(m&&periodMap[m[1]])b.textContent=periodMap[m[1]];
-  });
-}
-// Apply on load and after login
-const _origLaunch=window.launchApp;
-document.addEventListener('DOMContentLoaded',()=>{setTimeout(_applyLang,300);});
-setTimeout(_applyLang,500);
-
+function setLang(l){currentLang=l;localStorage.setItem('arwiya_lang',l);_applyL();}window.setLang=setLang;
+function _applyL(){const L=LANG[currentLang];if(!L)return;document.documentElement.dir=L.dir;['ar','en','ur'].forEach(l=>{const b=document.getElementById('btn-'+l);if(b)b.style.background=l===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});const _t=(s,t)=>{const e=document.querySelector(s);if(e)e.textContent=t;};const _p=(id,t)=>{const e=document.getElementById(id);if(e)e.placeholder=t;};_t('.app-name',L.appName);_t('.app-sub',L.appSub);_t('#rt-mgmt .role-label',L.mgmtBtn);_t('#rt-driver .role-label',L.driverBtn);_p('f-cnum-search',L.searchPlh);const lo=document.querySelector('button[onclick="doLogout()"]');if(lo)lo.textContent=L.logoutBtn;document.querySelectorAll('.period-btn').forEach(b=>{const m=b.getAttribute('onclick')?.match(/'(\w+)'/);const map={today:L.today,week:L.week,month:L.month,year:L.year};if(m&&map[m[1]])b.textContent=map[m[1]];});}
+setTimeout(_applyL,400);
 </script>
 
 <!-- ══ Edit Lift Modal ══ -->
