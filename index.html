@@ -7,12 +7,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="version" content="2026-04-09-v3">
-<title>Ø£Ø±ÙÙØ© ÙÙØ®Ø¯ÙØ§Øª â ÙØ¸Ø§Ù ÙØªØ§Ø¨Ø¹Ø© Ø§ÙØ±ÙØ¹Ø§Øª</title>
+<title>أروية للخدمات — نظام متابعة الرفعات</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    ROOT & RESET
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 :root {
   --green:       #1c6e3d;
   --green-mid:   #228b4e;
@@ -48,9 +48,9 @@ body {
   overflow-x: hidden;
 }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    LOGIN SCREEN
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 #login-screen {
   min-height: 100vh;
   display: flex;
@@ -149,9 +149,9 @@ body {
 }
 .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(28,110,61,0.45); }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    APP SHELL (post-login)
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 #app { display: none; min-height: 100vh; }
 
 .topbar {
@@ -227,16 +227,16 @@ body {
 }
 .logout-btn:hover { background: rgba(255,71,87,0.2); color: #ff8080; border-color: rgba(255,71,87,0.3); }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    PAGES
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 .page { display: none; }
 .page.active { display: block; animation: pageIn 0.3s ease; }
 @keyframes pageIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    DRIVER PAGE
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 .driver-wrap {
   max-width: 620px;
   margin: 0 auto;
@@ -480,9 +480,9 @@ body {
 }
 .del-btn:hover { background:var(--red); color:white; }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    MANAGEMENT PAGE
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 .mgmt-wrap { padding:18px 18px 60px; max-width:1400px; margin:0 auto; }
 
 /* Period tabs */
@@ -704,7 +704,7 @@ tr:hover td { background:var(--green-pale); }
 .mc-lbl { font-size:9px; color:var(--muted); white-space:nowrap; padding-bottom:8px; }
 .mc-val { font-size:9px; font-weight:700; color:var(--green); font-family:'JetBrains Mono',monospace; }
 
-/* ââ Containers Registry (mgmt tab) ââ */
+/* ══ Containers Registry (mgmt tab) ══ */
 .page-tabs {
   display:flex; gap:6px;
   padding:14px 18px 0;
@@ -933,47 +933,52 @@ tr:hover td { background:var(--green-pale); }
 </style>
 </head>
 <body>
+<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;">
+  <button onclick="setLang('ar')" id="btn-ar" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:11px;font-weight:800;cursor:pointer;">ع</button>
+  <button onclick="setLang('en')" id="btn-en" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">EN</button>
+  <button onclick="setLang('ur')" id="btn-ur" style="padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:11px;font-weight:700;cursor:pointer;">اردو</button>
+</div>
 
-<!-- ââ Loading overlay ââ -->
+<!-- ══ Loading overlay ══ -->
 <div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(24,34,24,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:white;font-size:15px;font-weight:700;">
   <div style="width:46px;height:46px;border:4px solid rgba(255,255,255,0.2);border-top-color:#2aad62;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-  <div>Ø¬Ø§Ø±Ù Ø§ÙØ§ØªØµØ§Ù Ø¨ÙØ§Ø¹Ø¯Ø© Ø§ÙØ¨ÙØ§ÙØ§Øª...</div>
+  <div>جاري الاتصال بقاعدة البيانات...</div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
-<!-- ââ LOGIN ââ -->
+<!-- ══ LOGIN ══ -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">ðï¸</div>
-    <div class="login-title">Ø£Ø±ÙÙØ© ÙÙØ®Ø¯ÙØ§Øª</div>
-    <div class="login-sub">ÙØ¸Ø§Ù ÙØªØ§Ø¨Ø¹Ø© Ø±ÙØ¹ Ø­Ø§ÙÙØ§Øª Ø§ÙÙÙØ§ÙØ§Øª</div>
+    <div class="login-logo">🗑️</div>
+    <div class="login-title">أروية للخدمات</div>
+    <div class="login-sub">نظام متابعة رفع حاويات النفايات</div>
 
     <div class="role-tabs">
       <div class="role-tab active" onclick="setRole('driver')" id="rt-driver">
-        <span class="rt-icon">ð</span>Ø³Ø§Ø¦Ù
+        <span class="rt-icon">🚛</span>سائق
       </div>
       <div class="role-tab" onclick="setRole('mgmt')" id="rt-mgmt">
-        <span class="rt-icon">ð</span>Ø¥Ø¯Ø§Ø±Ø© Ø§ÙØªØ´ØºÙÙ
+        <span class="rt-icon">📊</span>إدارة التشغيل
       </div>
     </div>
 
     <div id="login-driver-fields">
       <div class="login-group">
-        <label>Ø§Ø³Ù Ø§ÙØ³Ø§Ø¦Ù</label>
+        <label>اسم السائق</label>
         <select id="l-driver">
-          <option value="">â Ø§Ø®ØªØ± Ø§Ø³ÙÙ â</option>
-          <option>Ø£Ø­ÙØ¯ Ø§ÙØºØ§ÙØ¯Ù</option>
-          <option>ÙØ­ÙØ¯ Ø§ÙØ¹ØªÙØ¨Ù</option>
-          <option>Ø®Ø§ÙØ¯ Ø§ÙØ²ÙØ±Ø§ÙÙ</option>
-          <option>Ø³Ø¹Ø¯ Ø§ÙØ­Ø±Ø¨Ù</option>
-          <option>Ø¹Ø¨Ø¯Ø§ÙÙÙ Ø§ÙÙØ·ÙØ±Ù</option>
-          <option>ÙÙØµÙ Ø§ÙÙØ­Ø·Ø§ÙÙ</option>
+          <option value="">— اختر اسمك —</option>
+          <option>أحمد الغامدي</option>
+          <option>محمد العتيبي</option>
+          <option>خالد الزهراني</option>
+          <option>سعد الحربي</option>
+          <option>عبدالله المطيري</option>
+          <option>فيصل القحطاني</option>
         </select>
       </div>
       <div class="login-group">
-        <label>Ø±ÙÙ Ø§ÙØ´Ø§Ø­ÙØ©</label>
+        <label>رقم الشاحنة</label>
         <select id="l-truck">
-          <option value="">â Ø§Ø®ØªØ± Ø§ÙØ´Ø§Ø­ÙØ© â</option>
+          <option value="">— اختر الشاحنة —</option>
           <option>ARW-01</option>
           <option>ARW-02</option>
           <option>ARW-03</option>
@@ -985,62 +990,62 @@ tr:hover td { background:var(--green-pale); }
 
     <div id="login-mgmt-fields" style="display:none;">
       <div class="login-group">
-        <label>ÙÙÙØ© Ø§ÙÙØ±ÙØ±</label>
-        <input type="password" id="l-pass" placeholder="Ø£Ø¯Ø®Ù ÙÙÙØ© ÙØ±ÙØ± Ø§ÙØ¥Ø¯Ø§Ø±Ø©">
+        <label>كلمة المرور</label>
+        <input type="password" id="l-pass" placeholder="أدخل كلمة مرور الإدارة">
       </div>
     </div>
 
-    <button class="btn-login" onclick="doLogin()">Ø¯Ø®ÙÙ â</button>
+    <button class="btn-login" onclick="doLogin()">دخول →</button>
   </div>
 </div>
 
-<!-- ââ APP ââ -->
+<!-- ══ APP ══ -->
 <div id="app">
 
   <nav class="topbar">
     <div class="topbar-brand">
-      <div class="tb-logo">ðï¸</div>
+      <div class="tb-logo">🗑️</div>
       <div>
-        <div class="tb-name">Ø£Ø±ÙÙØ© ÙÙØ®Ø¯ÙØ§Øª</div>
-        <div class="tb-sub">ÙØ¸Ø§Ù Ø§ÙØ±ÙØ¹Ø§Øª</div>
+        <div class="tb-name">أروية للخدمات</div>
+        <div class="tb-sub">نظام الرفعات</div>
       </div>
     </div>
 
     <div class="topbar-center" id="nav-tabs">
-      <button class="tb-tab active" onclick="goPage('driver')" id="tab-driver">ð <span>Ø§ÙØ³Ø§Ø¦Ù</span></button>
-      <button class="tb-tab" onclick="goPage('mgmt')"   id="tab-mgmt">ð <span>Ø§ÙØ¥Ø¯Ø§Ø±Ø©</span></button>
+      <button class="tb-tab active" onclick="goPage('driver')" id="tab-driver">🚛 <span>السائق</span></button>
+      <button class="tb-tab" onclick="goPage('mgmt')"   id="tab-mgmt">📊 <span>الإدارة</span></button>
     </div>
 
     <div class="topbar-right">
-      <div id="fb-status" style="width:8px;height:8px;border-radius:50%;background:#ffa502;box-shadow:0 0 6px #ffa502;" title="Ø¬Ø§Ø±Ù Ø§ÙØ§ØªØµØ§Ù..."></div><div class="user-chip" id="user-chip">ð¤ â</div>
-      <button class="logout-btn" onclick="doLogout()">Ø®Ø±ÙØ¬</button>
+      <div id="fb-status" style="width:8px;height:8px;border-radius:50%;background:#ffa502;box-shadow:0 0 6px #ffa502;" title="جاري الاتصال..."></div><div class="user-chip" id="user-chip">👤 —</div>
+      <button class="logout-btn" onclick="doLogout()">خروج</button>
     </div>
   </nav>
 
-  <!-- ââ DRIVER PAGE ââ -->
+  <!-- ══ DRIVER PAGE ══ -->
   <div class="page active driver-wrap" id="page-driver">
 
     <!-- Hero -->
     <div class="driver-hero">
       <div class="hero-top">
-        <div class="hero-avatar">ð</div>
+        <div class="hero-avatar">🚛</div>
         <div>
-          <div class="hero-name" id="h-name">â</div>
-          <div class="hero-meta" id="h-meta">â</div>
+          <div class="hero-name" id="h-name">—</div>
+          <div class="hero-meta" id="h-meta">—</div>
         </div>
       </div>
       <div class="hero-kpis">
         <div class="hkpi">
           <div class="hkpi-val" id="hk-today">0</div>
-          <div class="hkpi-lbl">Ø±ÙØ¹Ø§Øª Ø§ÙÙÙÙ</div>
+          <div class="hkpi-lbl">رفعات اليوم</div>
         </div>
         <div class="hkpi">
           <div class="hkpi-val" id="hk-containers">0</div>
-          <div class="hkpi-lbl">Ø­Ø§ÙÙØ§Øª ÙÙÙØ±ÙØºØ©</div>
+          <div class="hkpi-lbl">حاويات مُفرّغة</div>
         </div>
         <div class="hkpi">
           <div class="hkpi-val" id="hk-photos">0</div>
-          <div class="hkpi-lbl">ØµÙØ± ÙØ±ÙÙØ¹Ø©</div>
+          <div class="hkpi-lbl">صور مرفوعة</div>
         </div>
       </div>
     </div>
@@ -1048,27 +1053,27 @@ tr:hover td { background:var(--green-pale); }
     <!-- Form -->
     <div class="card">
       <div class="card-head">
-        <div class="ch-icon">â</div>
+        <div class="ch-icon">➕</div>
         <div>
-          <div class="ch-title">ØªØ³Ø¬ÙÙ Ø±ÙØ¹Ø© Ø¬Ø¯ÙØ¯Ø©</div>
-          <div class="ch-sub">Ø£Ø¯Ø®Ù Ø¨ÙØ§ÙØ§Øª Ø§ÙØ­Ø§ÙÙØ© ÙØ§ÙØ¹ÙÙÙ</div>
+          <div class="ch-title">تسجيل رفعة جديدة</div>
+          <div class="ch-sub">أدخل بيانات الحاوية والعميل</div>
         </div>
       </div>
       <div class="card-body">
 
         <div class="frow c2">
           <div class="field" style="position:relative;">
-            <label>Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ© *</label>
+            <label>رقم الحاوية *</label>
             <div style="position:relative;">
               <input type="text" id="f-cnum-search"
                 class="fi"
-                placeholder="ð Ø§ÙØªØ¨ Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ© Ø£Ù Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ..."
+                placeholder="🔍 اكتب رقم الحاوية أو اسم العميل..."
                 autocomplete="off"
                 oninput="searchContainerInput()"
                 onfocus="searchContainerInput()"
                 onblur="setTimeout(()=>hideContainerDropdown(),200)"
                 style="width:100%;padding-left:36px;">
-              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;">ðï¸</span>
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;">🗑️</span>
             </div>
             <!-- Hidden field to store selected value -->
             <input type="hidden" id="f-cnum" value="">
@@ -1081,165 +1086,165 @@ tr:hover td { background:var(--green-pale); }
             </div>
           </div>
           <div class="field">
-            <label>Ø±ÙÙ Ø¹ÙØ¯ Ø§ÙØ¹ÙÙÙ</label>
-            <input type="text" id="f-contract" placeholder="ÙÙÙÙØ£ ØªÙÙØ§Ø¦ÙØ§Ù" readonly style="background:var(--sand2);color:var(--muted);">
+            <label>رقم عقد العميل</label>
+            <input type="text" id="f-contract" placeholder="يُملأ تلقائياً" readonly style="background:var(--sand2);color:var(--muted);">
           </div>
         </div>
 
         <!-- Auto-fill banner -->
         <div class="autofill-banner" id="autofill-banner">
-          <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">â Ø¨ÙØ§ÙØ§Øª Ø§ÙØ¹ÙÙÙ ØªÙÙÙØ£ ØªÙÙØ§Ø¦ÙØ§Ù</div>
+          <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">✅ بيانات العميل تُملأ تلقائياً</div>
           <div class="af-row">
-            <span class="af-label">Ø§ÙØ¹ÙÙÙ:</span><span class="af-val" id="af-client">â</span>
+            <span class="af-label">العميل:</span><span class="af-val" id="af-client">—</span>
             <span style="color:var(--border);">|</span>
-            <span class="af-label">Ø§ÙÙÙÙØ¹:</span><span class="af-val" id="af-loc">â</span>
+            <span class="af-label">الموقع:</span><span class="af-val" id="af-loc">—</span>
             <span style="color:var(--border);">|</span>
-            <span class="af-label">Ø§ÙÙÙØ§Ø³:</span><span class="af-val" id="af-size">â</span>
+            <span class="af-label">المقاس:</span><span class="af-val" id="af-size">—</span>
           </div>
         </div>
 
         <div class="frow c2">
           <div class="field">
-            <label>Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ / Ø§ÙÙÙØ´Ø£Ø©</label>
-            <input type="text" id="f-client" placeholder="ÙÙÙÙØ£ ØªÙÙØ§Ø¦ÙØ§Ù Ø¹ÙØ¯ Ø§Ø®ØªÙØ§Ø± Ø§ÙØ­Ø§ÙÙØ©" readonly style="background:var(--sand2);color:var(--muted);">
+            <label>اسم العميل / المنشأة</label>
+            <input type="text" id="f-client" placeholder="يُملأ تلقائياً عند اختيار الحاوية" readonly style="background:var(--sand2);color:var(--muted);">
           </div>
           <div class="field">
-            <label>ÙÙÙØ¹ Ø§ÙØ­Ø§ÙÙØ©</label>
-            <input type="text" id="f-loc" placeholder="ÙÙÙÙØ£ ØªÙÙØ§Ø¦ÙØ§Ù Ø¹ÙØ¯ Ø§Ø®ØªÙØ§Ø± Ø§ÙØ­Ø§ÙÙØ©" readonly style="background:var(--sand2);color:var(--muted);">
+            <label>موقع الحاوية</label>
+            <input type="text" id="f-loc" placeholder="يُملأ تلقائياً عند اختيار الحاوية" readonly style="background:var(--sand2);color:var(--muted);">
           </div>
         </div>
 
         <div class="field" style="margin-bottom:10px;">
-          <label>ÙÙØ§Ø³ Ø§ÙØ­Ø§ÙÙØ© *</label>
+          <label>مقاس الحاوية *</label>
           <div class="sizes" id="size-grid">
             <div class="sz" data-size="240L" onclick="pickSize(this,'240L')">
-              <span class="sz-icon">ðï¸</span>
-              <span class="sz-name">240 ÙØªØ±</span>
-              <span class="sz-vol">ØµØºÙØ±</span>
+              <span class="sz-icon">🗑️</span>
+              <span class="sz-name">240 لتر</span>
+              <span class="sz-vol">صغير</span>
             </div>
             <div class="sz" data-size="2Y" onclick="pickSize(this,'2Y')">
-              <span class="sz-icon">ð¦</span>
-              <span class="sz-name">2 ÙØ§Ø±Ø¯Ù</span>
-              <span class="sz-vol">ÙØªÙØ³Ø·</span>
+              <span class="sz-icon">📦</span>
+              <span class="sz-name">2 يارده</span>
+              <span class="sz-vol">متوسط</span>
             </div>
             <div class="sz" data-size="4Y" onclick="pickSize(this,'4Y')">
-              <span class="sz-icon">ð</span>
-              <span class="sz-name">4 ÙØ§Ø±Ø¯Ù</span>
-              <span class="sz-vol">ÙØ¨ÙØ±</span>
+              <span class="sz-icon">🚚</span>
+              <span class="sz-name">4 يارده</span>
+              <span class="sz-vol">كبير</span>
             </div>
             <div class="sz" data-size="6Y" onclick="pickSize(this,'6Y')">
-              <span class="sz-icon">ðï¸</span>
-              <span class="sz-name">6 ÙØ§Ø±Ø¯Ù</span>
-              <span class="sz-vol">Ø¶Ø®Ù</span>
+              <span class="sz-icon">🏗️</span>
+              <span class="sz-name">6 يارده</span>
+              <span class="sz-vol">ضخم</span>
             </div>
           </div>
         </div>
 
         <div class="frow c2">
           <div class="field">
-            <label>Ø¹Ø¯Ø¯ Ø§ÙØ­Ø§ÙÙØ§Øª</label>
+            <label>عدد الحاويات</label>
             <input type="number" id="f-qty" value="1" min="1" max="30">
           </div>
           <div class="field">
-            <label>ÙÙØª Ø§ÙØ±ÙØ¹</label>
+            <label>وقت الرفع</label>
             <input type="time" id="f-time">
           </div>
         </div>
 
         <!-- Photo upload -->
         <div class="field" style="margin-bottom:10px;">
-          <label>ØµÙØ±Ø© Ø§ÙØ­Ø§ÙÙØ©</label>
+          <label>صورة الحاوية</label>
           <div class="photo-area">
             <input type="file" id="photo-input" accept="image/*" multiple onchange="handlePhotos(event)">
-            <span class="pa-icon">ð·</span>
-            <span class="pa-text">ð· Ø§ÙÙØ± ÙØ§ÙØªÙØ§Ø· Ø£Ù Ø±ÙØ¹ ØµÙØ±Ø© (Ø§Ø®ØªÙØ§Ø±Ù)</span>
-            <span class="pa-sub">JPG / PNG â ÙÙÙÙ Ø±ÙØ¹ Ø£ÙØ«Ø± ÙÙ ØµÙØ±Ø©</span>
+            <span class="pa-icon">📷</span>
+            <span class="pa-text">📷 انقر لالتقاط أو رفع صورة (اختياري)</span>
+            <span class="pa-sub">JPG / PNG — يمكن رفع أكثر من صورة</span>
           </div>
           <div class="photo-preview" id="photo-preview"></div>
         </div>
 
         <!-- GPS Banner -->
         <div id="gps-banner" style="display:none;background:linear-gradient(135deg,#eaf5ef,#dff5e8);border:1.5px solid var(--green-border);border-radius:10px;padding:10px 14px;margin-bottom:10px;align-items:center;gap:10px;font-size:12px;">
-          <span style="font-size:20px;">ð</span>
+          <span style="font-size:20px;">📍</span>
           <div style="flex:1;">
-            <div style="font-weight:700;color:var(--green);" id="gps-status-lbl">ØªÙ ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹ â</div>
+            <div style="font-weight:700;color:var(--green);" id="gps-status-lbl">تم تحديد الموقع ✅</div>
             <div style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;" id="gps-coord"></div>
           </div>
-          <a id="gps-link" href="#" target="_blank" style="background:var(--green);color:white;padding:5px 10px;border-radius:7px;text-decoration:none;font-size:11px;font-weight:700;">ðºï¸ Ø®Ø±ÙØ·Ø©</a>
-          <button onclick="clearGPS()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;">â</button>
+          <a id="gps-link" href="#" target="_blank" style="background:var(--green);color:white;padding:5px 10px;border-radius:7px;text-decoration:none;font-size:11px;font-weight:700;">🗺️ خريطة</a>
+          <button onclick="clearGPS()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;">✕</button>
         </div>
         <!-- Manual location button (shown when no photo uploaded yet) -->
         <div style="margin-bottom:10px;">
           <button onclick="getLocationFromBrowser()" type="button" style="width:100%;padding:9px;background:var(--blue-pale);color:var(--blue);border:1.5px solid rgba(26,92,158,0.25);border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" id="manual-location-btn">
-            ð ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹ Ø§ÙØ­Ø§ÙÙ ÙØ¯ÙÙØ§Ù
+            📍 تحديد الموقع الحالي يدوياً
           </button>
         </div>
 
         <div class="field" style="margin-bottom:12px;">
-          <label>ÙÙØ§Ø­Ø¸Ø§Øª</label>
-          <textarea id="f-notes" placeholder="Ø£Ù ÙÙØ§Ø­Ø¸Ø§Øª Ø¹ÙÙ ÙØ°Ù Ø§ÙØ±ÙØ¹Ø©..."></textarea>
+          <label>ملاحظات</label>
+          <textarea id="f-notes" placeholder="أي ملاحظات على هذه الرفعة..."></textarea>
         </div>
 
-        <button class="btn-submit" onclick="addLift()">â ØªØ³Ø¬ÙÙ Ø§ÙØ±ÙØ¹Ø©</button>
+        <button class="btn-submit" onclick="addLift()">✅ تسجيل الرفعة</button>
       </div>
     </div>
 
     <!-- Today list -->
     <div class="card">
       <div class="card-head">
-        <div class="ch-icon">ð</div>
+        <div class="ch-icon">📋</div>
         <div>
-          <div class="ch-title">Ø±ÙØ¹Ø§ØªÙ Ø§ÙÙÙÙ</div>
-          <div class="ch-sub" id="d-lifts-sub">ÙØ§ ØªÙØ¬Ø¯ Ø±ÙØ¹Ø§Øª Ø¨Ø¹Ø¯</div>
+          <div class="ch-title">رفعاتك اليوم</div>
+          <div class="ch-sub" id="d-lifts-sub">لا توجد رفعات بعد</div>
         </div>
       </div>
       <div class="card-body" id="driver-list">
-        <div class="empty-state"><span class="em-ico">ð</span>ÙÙ ØªØ³Ø¬ÙÙ Ø£Ù Ø±ÙØ¹Ø§Øª Ø§ÙÙÙÙ</div>
+        <div class="empty-state"><span class="em-ico">🚛</span>لم تسجّل أي رفعات اليوم</div>
       </div>
     </div>
 
   </div>
 
-  <!-- ââ MANAGEMENT PAGE ââ -->
+  <!-- ══ MANAGEMENT PAGE ══ -->
   <div class="page mgmt-wrap" id="page-mgmt">
 
     <!-- Sub-tabs -->
     <div class="page-tabs" style="margin:-18px -18px 18px;">
-      <button class="page-tab active" onclick="switchMgmtTab('dashboard',this)" id="mtab-dashboard">ð ÙÙØ­Ø© Ø§ÙÙØªØ§Ø¨Ø¹Ø©</button>
-      <button class="page-tab" onclick="switchMgmtTab('containers',this)" id="mtab-containers">ðï¸ Ø¥Ø¯Ø§Ø±Ø© Ø§ÙØ­Ø§ÙÙØ§Øª</button>
-      <button class="page-tab" onclick="switchMgmtTab('settings',this)" id="mtab-settings">ð¥ Ø§ÙØ³Ø§Ø¦ÙÙÙ ÙØ§ÙØ´Ø§Ø­ÙØ§Øª</button>
+      <button class="page-tab active" onclick="switchMgmtTab('dashboard',this)" id="mtab-dashboard">📊 لوحة المتابعة</button>
+      <button class="page-tab" onclick="switchMgmtTab('containers',this)" id="mtab-containers">🗑️ إدارة الحاويات</button>
+      <button class="page-tab" onclick="switchMgmtTab('settings',this)" id="mtab-settings">👥 السائقون والشاحنات</button>
     </div>
 
-    <!-- ââ Dashboard sub-page ââ -->
+    <!-- ── Dashboard sub-page ── -->
     <div id="msub-dashboard">
       <!-- Period selector -->
       <div class="period-bar">
-        <button class="period-btn active" onclick="setPeriod('today',this)">Ø§ÙÙÙÙ</button>
-        <button class="period-btn" onclick="setPeriod('week',this)">ÙØ°Ø§ Ø§ÙØ£Ø³Ø¨ÙØ¹</button>
-        <button class="period-btn" onclick="setPeriod('month',this)">ÙØ°Ø§ Ø§ÙØ´ÙØ±</button>
-        <button class="period-btn" onclick="setPeriod('year',this)">ÙØ°Ø§ Ø§ÙØ¹Ø§Ù</button>
+        <button class="period-btn active" onclick="setPeriod('today',this)">اليوم</button>
+        <button class="period-btn" onclick="setPeriod('week',this)">هذا الأسبوع</button>
+        <button class="period-btn" onclick="setPeriod('month',this)">هذا الشهر</button>
+        <button class="period-btn" onclick="setPeriod('year',this)">هذا العام</button>
         <div class="date-range">
           <input type="date" class="dr-input" id="dr-from">
-          <span style="color:var(--muted);font-size:13px;align-self:center;">Ø¥ÙÙ</span>
+          <span style="color:var(--muted);font-size:13px;align-self:center;">إلى</span>
           <input type="date" class="dr-input" id="dr-to">
-          <button class="period-btn" onclick="setPeriod('custom',null)">ØªØ·Ø¨ÙÙ</button>
+          <button class="period-btn" onclick="setPeriod('custom',null)">تطبيق</button>
         </div>
       </div>
 
       <!-- KPIs -->
       <div class="kpi-strip">
-        <div class="kpi g"><div class="kpi-icon">ðï¸</div><div class="kpi-val" id="k-lifts">0</div><div class="kpi-lbl">Ø¥Ø¬ÙØ§ÙÙ Ø§ÙØ±ÙØ¹Ø§Øª</div></div>
-        <div class="kpi d"><div class="kpi-icon">ð¦</div><div class="kpi-val" id="k-cont">0</div><div class="kpi-lbl">Ø­Ø§ÙÙØ§Øª ÙÙÙØ±ÙØºØ©</div></div>
-        <div class="kpi b"><div class="kpi-icon">ð¢</div><div class="kpi-val" id="k-clients">0</div><div class="kpi-lbl">Ø¹ÙÙØ§Ø¡ Ø®ÙØ¯ÙÙØ§</div></div>
-        <div class="kpi o"><div class="kpi-icon">ð</div><div class="kpi-val" id="k-trucks">0</div><div class="kpi-lbl">Ø´Ø§Ø­ÙØ§Øª ÙØ´Ø·Ø©</div></div>
-        <div class="kpi r"><div class="kpi-icon">ð¸</div><div class="kpi-val" id="k-photos">0</div><div class="kpi-lbl">ØµÙØ± ÙÙØ«ÙÙØ©</div></div>
+        <div class="kpi g"><div class="kpi-icon">🗑️</div><div class="kpi-val" id="k-lifts">0</div><div class="kpi-lbl">إجمالي الرفعات</div></div>
+        <div class="kpi d"><div class="kpi-icon">📦</div><div class="kpi-val" id="k-cont">0</div><div class="kpi-lbl">حاويات مُفرّغة</div></div>
+        <div class="kpi b"><div class="kpi-icon">🏢</div><div class="kpi-val" id="k-clients">0</div><div class="kpi-lbl">عملاء خُدموا</div></div>
+        <div class="kpi o"><div class="kpi-icon">🚛</div><div class="kpi-val" id="k-trucks">0</div><div class="kpi-lbl">شاحنات نشطة</div></div>
+        <div class="kpi r"><div class="kpi-icon">📸</div><div class="kpi-val" id="k-photos">0</div><div class="kpi-lbl">صور موثّقة</div></div>
       </div>
 
       <div class="mgmt-grid">
         <div>
           <div class="panel" style="margin-bottom:14px;" id="chart-panel">
             <div class="panel-head">
-              <div><div class="ph-title">Ø§ÙØ±ÙØ¹Ø§Øª Ø§ÙØ´ÙØ±ÙØ©</div><div class="ph-sub">ØªÙØ²ÙØ¹ Ø§ÙØ±ÙØ¹Ø§Øª Ø®ÙØ§Ù Ø§ÙØ£Ø´ÙØ±</div></div>
+              <div><div class="ph-title">الرفعات الشهرية</div><div class="ph-sub">توزيع الرفعات خلال الأشهر</div></div>
             </div>
             <div class="month-chart" id="month-chart"></div>
             <div style="height:14px;"></div>
@@ -1247,20 +1252,20 @@ tr:hover td { background:var(--green-pale); }
 
           <div class="panel">
             <div class="panel-head">
-              <div><div class="ph-title">Ø³Ø¬Ù Ø§ÙØ±ÙØ¹Ø§Øª</div><div class="ph-sub" id="m-sub">â</div></div>
-              <button class="btn-ex" onclick="exportCSV()">ð¥ Excel</button>
+              <div><div class="ph-title">سجل الرفعات</div><div class="ph-sub" id="m-sub">—</div></div>
+              <button class="btn-ex" onclick="exportCSV()">📥 Excel</button>
             </div>
             <div class="filter-bar">
-              <input type="text" class="fi fi-search" id="m-q" placeholder="ð Ø¨Ø­Ø«..." oninput="renderMgmt()">
+              <input type="text" class="fi fi-search" id="m-q" placeholder="🔍 بحث..." oninput="renderMgmt()">
               <select class="fi" id="m-sz" onchange="renderMgmt()">
-                <option value="">ÙÙ Ø§ÙÙÙØ§Ø³Ø§Øª</option>
-                <option value="240L">240 ÙØªØ±</option>
-                <option value="2Y">2 ÙØ§Ø±Ø¯Ù</option>
-                <option value="4Y">4 ÙØ§Ø±Ø¯Ù</option>
-                <option value="6Y">6 ÙØ§Ø±Ø¯Ù</option>
+                <option value="">كل المقاسات</option>
+                <option value="240L">240 لتر</option>
+                <option value="2Y">2 يارده</option>
+                <option value="4Y">4 يارده</option>
+                <option value="6Y">6 يارده</option>
               </select>
               <select class="fi" id="m-drv" onchange="renderMgmt()">
-                <option value="">ÙÙ Ø§ÙØ³Ø§Ø¦ÙÙÙ</option>
+                <option value="">كل السائقين</option>
               </select>
             </div>
             <div class="tbl-wrap">
@@ -1268,24 +1273,24 @@ tr:hover td { background:var(--green-pale); }
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©</th>
-                    <th>Ø§ÙØ¹ÙÙÙ / Ø§ÙÙÙØ´Ø£Ø©</th>
-                    <th>Ø§ÙØ¹ÙØ¯</th>
-                    <th>Ø§ÙÙÙÙØ¹</th>
-                    <th>Ø§ÙÙÙØ§Ø³</th>
-                    <th>Ø§ÙØ¹Ø¯Ø¯</th>
-                    <th>Ø§ÙØ³Ø§Ø¦Ù</th>
-                    <th>Ø§ÙØ´Ø§Ø­ÙØ©</th>
-                    <th>Ø§ÙÙÙØª</th>
-                    <th>ØµÙØ±</th>
-                    <th>ð GPS</th>
-                    <th>ÙÙØ§Ø­Ø¸Ø§Øª</th>
-                    <th>ØªØ¹Ø¯ÙÙ</th>
+                    <th>رقم الحاوية</th>
+                    <th>العميل / المنشأة</th>
+                    <th>العقد</th>
+                    <th>الموقع</th>
+                    <th>المقاس</th>
+                    <th>العدد</th>
+                    <th>السائق</th>
+                    <th>الشاحنة</th>
+                    <th>التاريخ</th><th>الوقت</th>
+                    <th>صور</th>
+                    <th>📍 GPS</th>
+                    <th>ملاحظات</th>
+                    <th>تعديل</th>
                   </tr>
                 </thead>
                 <tbody id="m-tbody"></tbody>
               </table>
-              <div class="empty-state" id="m-empty" style="display:none;"><span class="em-ico">ð</span>ÙØ§ ØªÙØ¬Ø¯ Ø±ÙØ¹Ø§Øª ÙÙ ÙØ°Ù Ø§ÙÙØªØ±Ø©</div>
+              <div class="empty-state" id="m-empty" style="display:none;"><span class="em-ico">📋</span>لا توجد رفعات في هذه الفترة</div>
             </div>
           </div>
         </div>
@@ -1293,21 +1298,21 @@ tr:hover td { background:var(--green-pale); }
         <div class="right-col">
           <div class="panel">
             <div class="panel-head">
-              <div><div class="ph-title">ð ØªØ±ØªÙØ¨ Ø§ÙØ³Ø§Ø¦ÙÙÙ</div><div class="ph-sub">Ø­Ø³Ø¨ Ø¹Ø¯Ø¯ Ø§ÙØ±ÙØ¹Ø§Øª</div></div>
+              <div><div class="ph-title">🏆 ترتيب السائقين</div><div class="ph-sub">حسب عدد الرفعات</div></div>
             </div>
-            <div id="drv-board"><div class="empty-state"><span class="em-ico">ð¤</span>ÙØ§ Ø¨ÙØ§ÙØ§Øª</div></div>
+            <div id="drv-board"><div class="empty-state"><span class="em-ico">👤</span>لا بيانات</div></div>
           </div>
           <div class="panel">
             <div class="panel-head">
-              <div><div class="ph-title">ØªÙØ²ÙØ¹ Ø§ÙÙÙØ§Ø³Ø§Øª</div></div>
+              <div><div class="ph-title">توزيع المقاسات</div></div>
             </div>
-            <div id="sz-board"><div class="empty-state"><span class="em-ico">ð¦</span>ÙØ§ Ø¨ÙØ§ÙØ§Øª</div></div>
+            <div id="sz-board"><div class="empty-state"><span class="em-ico">📦</span>لا بيانات</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ââ Settings sub-page ââ -->
+    <!-- ── Settings sub-page ── -->
     <div id="msub-settings" style="display:none;">
       <div style="max-width:900px;margin:0 auto;">
 
@@ -1316,12 +1321,12 @@ tr:hover td { background:var(--green-pale); }
           <!-- Drivers panel -->
           <div class="panel">
             <div class="panel-head">
-              <div><div class="ph-title">ð¤ Ø§ÙØ³Ø§Ø¦ÙÙÙ</div><div class="ph-sub" id="drv-count-lbl">0 Ø³Ø§Ø¦Ù ÙØ³Ø¬ÙÙ</div></div>
+              <div><div class="ph-title">👤 السائقون</div><div class="ph-sub" id="drv-count-lbl">0 سائق مسجّل</div></div>
             </div>
             <div style="padding:14px;border-bottom:1px solid var(--border);">
               <div style="display:flex;gap:8px;">
-                <input type="text" id="new-drv-name" class="fi" placeholder="Ø§Ø³Ù Ø§ÙØ³Ø§Ø¦Ù" style="flex:1;" onkeydown="if(event.key==='Enter')addDriver()">
-                <button class="btn-submit" style="width:auto;padding:9px 18px;font-size:13px;" onclick="addDriver()">+ Ø¥Ø¶Ø§ÙØ©</button>
+                <input type="text" id="new-drv-name" class="fi" placeholder="اسم السائق" style="flex:1;" onkeydown="if(event.key==='Enter')addDriver()">
+                <button class="btn-submit" style="width:auto;padding:9px 18px;font-size:13px;" onclick="addDriver()">+ إضافة</button>
               </div>
             </div>
             <div id="drv-settings-list" style="max-height:380px;overflow-y:auto;"></div>
@@ -1330,12 +1335,12 @@ tr:hover td { background:var(--green-pale); }
           <!-- Trucks panel -->
           <div class="panel">
             <div class="panel-head">
-              <div><div class="ph-title">ð Ø§ÙØ´Ø§Ø­ÙØ§Øª</div><div class="ph-sub" id="trk-count-lbl">0 Ø´Ø§Ø­ÙØ© ÙØ³Ø¬ÙÙØ©</div></div>
+              <div><div class="ph-title">🚛 الشاحنات</div><div class="ph-sub" id="trk-count-lbl">0 شاحنة مسجّلة</div></div>
             </div>
             <div style="padding:14px;border-bottom:1px solid var(--border);">
               <div style="display:flex;gap:8px;">
-                <input type="text" id="new-trk-num" class="fi" placeholder="Ø±ÙÙ Ø§ÙØ´Ø§Ø­ÙØ© (ÙØ«Ø§Ù: ARW-06)" style="flex:1;" onkeydown="if(event.key==='Enter')addTruck()">
-                <button class="btn-submit" style="width:auto;padding:9px 18px;font-size:13px;" onclick="addTruck()">+ Ø¥Ø¶Ø§ÙØ©</button>
+                <input type="text" id="new-trk-num" class="fi" placeholder="رقم الشاحنة (مثال: ARW-06)" style="flex:1;" onkeydown="if(event.key==='Enter')addTruck()">
+                <button class="btn-submit" style="width:auto;padding:9px 18px;font-size:13px;" onclick="addTruck()">+ إضافة</button>
               </div>
             </div>
             <div id="trk-settings-list" style="max-height:380px;overflow-y:auto;"></div>
@@ -1344,79 +1349,79 @@ tr:hover td { background:var(--green-pale); }
         </div>
 
         <div style="margin-top:16px;background:var(--green-pale);border:1px solid var(--green-border);border-radius:12px;padding:14px 18px;font-size:13px;color:var(--green);">
-          ð¡ Ø£Ù ØªØºÙÙØ± ÙÙØ§ ÙØ¸ÙØ± ÙÙØ±Ø§Ù ÙÙ Ø´Ø§Ø´Ø© Ø¯Ø®ÙÙ Ø§ÙØ³Ø§Ø¦ÙÙÙ
+          💡 أي تغيير هنا يظهر فوراً في شاشة دخول السائقين
         </div>
 
       </div>
     </div>
 
-    <!-- ââ Containers Registry sub-page ââ -->
+    <!-- ── Containers Registry sub-page ── -->
     <div id="msub-containers" style="display:none;">
       <div class="containers-wrap" style="padding:0;">
 
         <!-- Add form -->
         <div class="panel" style="margin-bottom:16px;">
           <div class="panel-head">
-            <div><div class="ph-title">â Ø¥Ø¶Ø§ÙØ© Ø­Ø§ÙÙØ© Ø¬Ø¯ÙØ¯Ø©</div><div class="ph-sub">Ø£Ø¯Ø®Ù Ø¨ÙØ§ÙØ§Øª Ø§ÙØ­Ø§ÙÙØ© ÙØªØ¸ÙØ± ÙÙØ³Ø§Ø¦ÙÙÙ</div></div>
+            <div><div class="ph-title">➕ إضافة حاوية جديدة</div><div class="ph-sub">أدخل بيانات الحاوية لتظهر للسائقين</div></div>
             <label style="display:flex;align-items:center;gap:6px;background:var(--blue-pale);color:var(--blue);border:1.5px solid rgba(26,92,158,0.25);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
-              ð Ø§Ø³ØªÙØ±Ø§Ø¯ Excel
+              📊 استيراد Excel
               <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importFromExcel(event)">
             </label>
           </div>
           <div style="padding:16px;">
             <div class="cont-form-row">
               <div class="field">
-                <label>Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ© *</label>
+                <label>رقم الحاوية *</label>
                 <input type="text" id="c-num" class="form-input" placeholder="ARW-C-0001">
               </div>
               <div class="field">
-                <label>Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ / Ø§ÙÙÙØ´Ø£Ø©</label>
-                <input type="text" id="c-client" class="form-input" placeholder="ÙØ·Ø¹ÙØ ÙÙØ¯ÙØ ÙØµÙØ¹...">
+                <label>اسم العميل / المنشأة</label>
+                <input type="text" id="c-client" class="form-input" placeholder="مطعم، فندق، مصنع...">
               </div>
               <div class="field">
-                <label>Ø±ÙÙ Ø§ÙØ¹ÙØ¯</label>
+                <label>رقم العقد</label>
                 <input type="text" id="c-contract" class="form-input" placeholder="ARW-2024-XXXX">
               </div>
               <div class="field">
-                <label>Ø§ÙÙÙÙØ¹</label>
-                <input type="text" id="c-loc" class="form-input" placeholder="Ø§ÙØ­Ù / Ø§ÙØ´Ø§Ø±Ø¹">
+                <label>الموقع</label>
+                <input type="text" id="c-loc" class="form-input" placeholder="الحي / الشارع">
               </div>
               <div class="field">
-                <label>Ø§ÙÙÙØ§Ø³</label>
+                <label>المقاس</label>
                 <select id="c-size" class="form-input">
-                  <option value="">â Ø§Ø®ØªØ± â</option>
-                  <option value="240L">240 ÙØªØ±</option>
-                  <option value="2Y">2 ÙØ§Ø±Ø¯Ù</option>
-                  <option value="4Y">4 ÙØ§Ø±Ø¯Ù</option>
-                  <option value="6Y">6 ÙØ§Ø±Ø¯Ù</option>
+                  <option value="">— اختر —</option>
+                  <option value="240L">240 لتر</option>
+                  <option value="2Y">2 يارده</option>
+                  <option value="4Y">4 يارده</option>
+                  <option value="6Y">6 يارده</option>
                 </select>
               </div>
               <div class="field" style="position:relative;">
-                <label>Ø§ÙÙÙÙØ¹ GPS</label>
+                <label>الموقع GPS</label>
                 <div style="display:flex;gap:6px;">
                   <input type="text" id="c-gps" class="form-input" placeholder="21.597226, 39.223685" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:12px;">
-                  <button type="button" onclick="detectContainerGPS()" style="padding:8px 10px;background:var(--green-pale);color:var(--green);border:1.5px solid var(--green-border);border-radius:8px;cursor:pointer;font-size:16px;white-space:nowrap;" title="ØªØ­Ø¯ÙØ¯ ÙÙÙØ¹Ù Ø§ÙØ­Ø§ÙÙ">ð</button>
+                  <button type="button" onclick="detectContainerGPS()" style="padding:8px 10px;background:var(--green-pale);color:var(--green);border:1.5px solid var(--green-border);border-radius:8px;cursor:pointer;font-size:16px;white-space:nowrap;" title="تحديد موقعي الحالي">📍</button>
                 </div>
               </div>
               <div class="field">
-                <label>Ø§ÙØ³Ø¹Ø± Ø§ÙØ³ÙÙÙ (Ø±ÙØ§Ù)</label>
+                <label>السعر السنوي (ريال)</label>
                 <input type="number" id="c-price" class="form-input" placeholder="0" min="0" step="0.01">
               </div>
-              <button class="btn-submit" style="padding:10px 20px;width:auto;white-space:nowrap;" onclick="addContainer()">+ Ø¥Ø¶Ø§ÙØ©</button>
+              <button class="btn-submit" style="padding:10px 20px;width:auto;white-space:nowrap;" onclick="addContainer()">+ إضافة</button>
             </div>
           </div>
         </div>
 
         <!-- Search + count -->
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <input type="text" class="fi fi-search" id="c-search" placeholder="ð Ø¨Ø­Ø« ÙÙ Ø§ÙØ­Ø§ÙÙØ§Øª..." oninput="renderContainers()" style="flex:1;">
+          <input type="text" class="fi fi-search" id="c-search" placeholder="🔍 بحث في الحاويات..." oninput="renderContainers()" style="flex:1;">
           <div style="font-size:13px;color:var(--muted);white-space:nowrap;" id="c-count"></div>
-          <button class="btn-ex" onclick="exportContainersCSV()" style="white-space:nowrap;">ð¥ ØªØµØ¯ÙØ±</button>
+          <button class="btn-ex" onclick="exportContainersCSV()" style="white-space:nowrap;">📥 تصدير</button>
         </div>
 
         <!-- List -->
         <div class="cont-list" id="cont-list">
-          <div class="empty-state"><span class="em-ico">ðï¸</span>ÙØ§ ØªÙØ¬Ø¯ Ø­Ø§ÙÙØ§Øª ÙØ³Ø¬ÙØ© Ø¨Ø¹Ø¯</div>
+          <div class="empty-state"><span class="em-ico">🗑️</span>لا توجد حاويات مسجلة بعد</div>
         </div>
       </div>
     </div>
@@ -1427,7 +1432,7 @@ tr:hover td { background:var(--green-pale); }
 
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
-  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')">â</button>
+  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</button>
   <img id="lb-img" src="" alt="">
 </div>
 
@@ -1435,9 +1440,9 @@ tr:hover td { background:var(--green-pale); }
 <div class="toast" id="toast"></div>
 
 <script>
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    SUPABASE CONFIG
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 const SUPABASE_URL = 'https://jducltqmguqtndltawrw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkdWNsdHFtZ3VxdG5kbHRhd3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTUwODQsImV4cCI6MjA5MDU5MTA4NH0.offeytDxO1wmPU9yvKbR3B974tgHX4uNUj4lEAqT8I8';
 
@@ -1474,9 +1479,9 @@ const supa = {
   }
 };
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    STATE
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 let lifts      = [];
 let containers = [];
 let currentRole = 'driver';
@@ -1487,14 +1492,14 @@ let chosenSize = '';
 let activePeriod = 'today';
 let pollIntervals = [];
 
-const SZ_LABEL = { '240L':'240 ÙØªØ±', '2Y':'2 ÙØ§Ø±Ø¯Ù', '4Y':'4 ÙØ§Ø±Ø¯Ù', '6Y':'6 ÙØ§Ø±Ø¯Ù' };
-const SZ_ICON  = { '240L':'ðï¸', '2Y':'ð¦', '4Y':'ð', '6Y':'ðï¸' };
-const MONTHS_AR = ['ÙÙØ§ÙØ±','ÙØ¨Ø±Ø§ÙØ±','ÙØ§Ø±Ø³','Ø£Ø¨Ø±ÙÙ','ÙØ§ÙÙ','ÙÙÙÙÙ','ÙÙÙÙÙ','Ø£ØºØ³Ø·Ø³','Ø³Ø¨ØªÙØ¨Ø±','Ø£ÙØªÙØ¨Ø±','ÙÙÙÙØ¨Ø±','Ø¯ÙØ³ÙØ¨Ø±'];
+const SZ_LABEL = { '240L':'240 لتر', '2Y':'2 يارده', '4Y':'4 يارده', '6Y':'6 يارده' };
+const SZ_ICON  = { '240L':'🗑️', '2Y':'📦', '4Y':'🚚', '6Y':'🏗️' };
+const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const MGMT_PASS = 'arwiya2024';
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    LOGIN
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 function setRole(r) {
   currentRole = r;
   document.getElementById('rt-driver').classList.toggle('active', r==='driver');
@@ -1508,12 +1513,12 @@ async function doLogin() {
   if (currentRole === 'driver') {
     const name  = document.getElementById('l-driver').value;
     const truck = document.getElementById('l-truck').value;
-    if (!name || !truck) { toast('â ï¸ ÙØ±Ø¬Ù Ø§Ø®ØªÙØ§Ø± Ø§ÙØ§Ø³Ù ÙØ§ÙØ´Ø§Ø­ÙØ©','err'); return; }
+    if (!name || !truck) { toast('⚠️ يرجى اختيار الاسم والشاحنة','err'); return; }
     currentUser = { role:'driver', name, truck };
   } else {
     const pass = document.getElementById('l-pass').value;
-    if (pass !== MGMT_PASS) { toast('â ÙÙÙØ© Ø§ÙÙØ±ÙØ± ØºÙØ± ØµØ­ÙØ­Ø©','err'); return; }
-    currentUser = { role:'mgmt', name:'Ø¥Ø¯Ø§Ø±Ø© Ø§ÙØªØ´ØºÙÙ' };
+    if (pass !== MGMT_PASS) { toast('❌ كلمة المرور غير صحيحة','err'); return; }
+    currentUser = { role:'mgmt', name:'إدارة التشغيل' };
   }
   await launchApp();
 }
@@ -1522,7 +1527,7 @@ window.doLogin = doLogin;
 async function launchApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('user-chip').textContent = 'ð¤ ' + currentUser.name;
+  document.getElementById('user-chip').textContent = '👤 ' + currentUser.name;
 
   // Load data with timeout protection
   showLoader(true);
@@ -1579,15 +1584,15 @@ function doLogout() {
 }
 window.doLogout = doLogout;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    DATA LOADERS
-ââââââââââââââââââââââââââââââââââââââââââ */
-/* ââââââââââââââââââââââââââââââââââââââââââ
+══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
    DRIVERS & TRUCKS SETTINGS
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 let drivers = [
-  'Ø£Ø­ÙØ¯ Ø§ÙØºØ§ÙØ¯Ù','ÙØ­ÙØ¯ Ø§ÙØ¹ØªÙØ¨Ù','Ø®Ø§ÙØ¯ Ø§ÙØ²ÙØ±Ø§ÙÙ',
-  'Ø³Ø¹Ø¯ Ø§ÙØ­Ø±Ø¨Ù','Ø¹Ø¨Ø¯Ø§ÙÙÙ Ø§ÙÙØ·ÙØ±Ù','ÙÙØµÙ Ø§ÙÙØ­Ø·Ø§ÙÙ'
+  'أحمد الغامدي','محمد العتيبي','خالد الزهراني',
+  'سعد الحربي','عبدالله المطيري','فيصل القحطاني'
 ];
 let trucks = ['ARW-01','ARW-02','ARW-03','ARW-04','ARW-05'];
 
@@ -1640,11 +1645,11 @@ function refreshDriverSelects() {
   const dSel = document.getElementById('l-driver');
   const tSel = document.getElementById('l-truck');
   if (dSel) {
-    dSel.innerHTML = '<option value="">â Ø§Ø®ØªØ± Ø§Ø³ÙÙ â</option>' +
+    dSel.innerHTML = '<option value="">— اختر اسمك —</option>' +
       drivers.map(d=>`<option>${d}</option>`).join('');
   }
   if (tSel) {
-    tSel.innerHTML = '<option value="">â Ø§Ø®ØªØ± Ø§ÙØ´Ø§Ø­ÙØ© â</option>' +
+    tSel.innerHTML = '<option value="">— اختر الشاحنة —</option>' +
       trucks.map(t=>`<option>${t}</option>`).join('');
   }
 }
@@ -1655,18 +1660,18 @@ function renderSettings() {
   const tList = document.getElementById('trk-settings-list');
   const dLbl  = document.getElementById('drv-count-lbl');
   const tLbl  = document.getElementById('trk-count-lbl');
-  if (dLbl) dLbl.textContent = `${drivers.length} Ø³Ø§Ø¦Ù ÙØ³Ø¬ÙÙ`;
-  if (tLbl) tLbl.textContent = `${trucks.length} Ø´Ø§Ø­ÙØ© ÙØ³Ø¬ÙÙØ©`;
+  if (dLbl) dLbl.textContent = `${drivers.length} سائق مسجّل`;
+  if (tLbl) tLbl.textContent = `${trucks.length} شاحنة مسجّلة`;
   if (dList) {
     dList.innerHTML = drivers.length ? drivers.map((d,i) => {
       const ini = d.split(' ').map(w=>w[0]).join('').slice(0,2);
-      return `<div class="setting-item"><div class="setting-item-icon">${ini}</div><div class="setting-item-name">${d}</div><button class="setting-item-del" onclick="removeDriver(${i})">ð</button></div>`;
-    }).join('') : '<div class="empty-state"><span class="em-ico">ð¤</span>ÙØ§ ÙÙØ¬Ø¯ Ø³Ø§Ø¦ÙÙÙ</div>';
+      return `<div class="setting-item"><div class="setting-item-icon">${ini}</div><div class="setting-item-name">${d}</div><button class="setting-item-del" onclick="removeDriver(${i})">🗑</button></div>`;
+    }).join('') : '<div class="empty-state"><span class="em-ico">👤</span>لا يوجد سائقون</div>';
   }
   if (tList) {
     tList.innerHTML = trucks.length ? trucks.map((t,i) =>
-      `<div class="setting-item"><div class="setting-item-icon" style="font-size:18px;background:var(--dark2);">ð</div><div class="setting-item-name" style="font-family:'JetBrains Mono',monospace;">${t}</div><button class="setting-item-del" onclick="removeTruck(${i})">ð</button></div>`
-    ).join('') : '<div class="empty-state"><span class="em-ico">ð</span>ÙØ§ ØªÙØ¬Ø¯ Ø´Ø§Ø­ÙØ§Øª</div>';
+      `<div class="setting-item"><div class="setting-item-icon" style="font-size:18px;background:var(--dark2);">🚛</div><div class="setting-item-name" style="font-family:'JetBrains Mono',monospace;">${t}</div><button class="setting-item-del" onclick="removeTruck(${i})">🗑</button></div>`
+    ).join('') : '<div class="empty-state"><span class="em-ico">🚛</span>لا توجد شاحنات</div>';
   }
 }
 window.renderSettings = renderSettings;
@@ -1674,50 +1679,50 @@ window.renderSettings = renderSettings;
 async function addDriver() {
   const input = document.getElementById('new-drv-name');
   const name = input?.value.trim();
-  if (!name) { toast('â ï¸ Ø£Ø¯Ø®Ù Ø§Ø³Ù Ø§ÙØ³Ø§Ø¦Ù','err'); return; }
-  if (drivers.includes(name)) { toast('â ï¸ ÙØ°Ø§ Ø§ÙØ§Ø³Ù ÙØ³Ø¬ÙÙ ÙØ³Ø¨ÙØ§Ù','err'); return; }
+  if (!name) { toast('⚠️ أدخل اسم السائق','err'); return; }
+  if (drivers.includes(name)) { toast('⚠️ هذا الاسم مسجّل مسبقاً','err'); return; }
   drivers.push(name);
   if (input) input.value = '';
   await saveSettings();
   refreshDriverSelects();
   renderSettings();
-  toast(`â ØªÙØª Ø¥Ø¶Ø§ÙØ© Ø§ÙØ³Ø§Ø¦Ù ${name}`, 'ok');
+  toast(`✅ تمت إضافة السائق ${name}`, 'ok');
 }
 window.addDriver = addDriver;
 
 async function removeDriver(i) {
   const name = drivers[i];
-  if (!confirm(`ÙÙ ØªØ±ÙØ¯ Ø­Ø°Ù Ø§ÙØ³Ø§Ø¦Ù "${name}"Ø`)) return;
+  if (!confirm(`هل تريد حذف السائق "${name}"؟`)) return;
   drivers.splice(i, 1);
   await saveSettings();
   refreshDriverSelects();
   renderSettings();
-  toast(`ðï¸ Ø­ÙØ°Ù Ø§ÙØ³Ø§Ø¦Ù ${name}`, 'err');
+  toast(`🗑️ حُذف السائق ${name}`, 'err');
 }
 window.removeDriver = removeDriver;
 
 async function addTruck() {
   const input = document.getElementById('new-trk-num');
   const num = input?.value.trim().toUpperCase();
-  if (!num) { toast('â ï¸ Ø£Ø¯Ø®Ù Ø±ÙÙ Ø§ÙØ´Ø§Ø­ÙØ©','err'); return; }
-  if (trucks.includes(num)) { toast('â ï¸ ÙØ°Ø§ Ø§ÙØ±ÙÙ ÙØ³Ø¬ÙÙ ÙØ³Ø¨ÙØ§Ù','err'); return; }
+  if (!num) { toast('⚠️ أدخل رقم الشاحنة','err'); return; }
+  if (trucks.includes(num)) { toast('⚠️ هذا الرقم مسجّل مسبقاً','err'); return; }
   trucks.push(num);
   if (input) input.value = '';
   await saveSettings();
   refreshDriverSelects();
   renderSettings();
-  toast(`â ØªÙØª Ø¥Ø¶Ø§ÙØ© Ø§ÙØ´Ø§Ø­ÙØ© ${num}`, 'ok');
+  toast(`✅ تمت إضافة الشاحنة ${num}`, 'ok');
 }
 window.addTruck = addTruck;
 
 async function removeTruck(i) {
   const num = trucks[i];
-  if (!confirm(`ÙÙ ØªØ±ÙØ¯ Ø­Ø°Ù Ø§ÙØ´Ø§Ø­ÙØ© "${num}"Ø`)) return;
+  if (!confirm(`هل تريد حذف الشاحنة "${num}"؟`)) return;
   trucks.splice(i, 1);
   await saveSettings();
   refreshDriverSelects();
   renderSettings();
-  toast(`ðï¸ Ø­ÙØ°ÙØª Ø§ÙØ´Ø§Ø­ÙØ© ${num}`, 'err');
+  toast(`🗑️ حُذفت الشاحنة ${num}`, 'err');
 }
 window.removeTruck = removeTruck;
 
@@ -1733,7 +1738,7 @@ async function loadContainers() {
       }
       // Update status indicator
       const dot = document.getElementById('fb-status');
-      if (dot) { dot.style.background='#2aad62'; dot.style.boxShadow='0 0 6px #2aad62'; dot.title='ÙØªØµÙ'; }
+      if (dot) { dot.style.background='#2aad62'; dot.style.boxShadow='0 0 6px #2aad62'; dot.title='متصل'; }
     }
   } catch(e) { console.error('loadContainers:', e); }
 }
@@ -1743,7 +1748,7 @@ async function loadLifts() {
     const COLS = 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';
     const PAGE = 1000; let all = []; let offset = 0;
     while (true) {
-      const url = `${SUPABASE_URL}/rest/v1/lifts?select=${COLS}&order=created_at.desc&limit=${PAGE}&offset=${offset}`;
+      const url = SUPABASE_URL+'/rest/v1/lifts?select='+COLS+'&order=created_at.desc&limit='+PAGE+'&offset='+offset;
       const rr = await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
       if(!rr.ok) break;
       const batch = await rr.json();
@@ -1755,7 +1760,7 @@ async function loadLifts() {
     lifts = all.map(l=>({...l,ts:new Date(l.created_at)}));
     if(currentUser.role==='driver'){renderDriverList();updateDriverHero();}
     else if(currentUser.role==='mgmt'){renderMgmt();}
-  } catch(e){console.error('loadLifts:',e);}
+  } catch(ex){console.error('loadLifts:',ex);}
 }
 
 async function addContainer() {
@@ -1777,9 +1782,9 @@ async function addContainer() {
     }
   }
 
-  if (!num)  { toast('â ï¸ Ø£Ø¯Ø®Ù Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©','err'); return; }
-  if (!size) { toast('â ï¸ Ø§Ø®ØªØ± ÙÙØ§Ø³ Ø§ÙØ­Ø§ÙÙØ©','err'); return; }
-  if (containers.find(c=>c.num===num)) { toast('â ï¸ Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ© ÙØ³Ø¬ÙÙ ÙØ³Ø¨ÙØ§Ù','err'); return; }
+  if (!num)  { toast('⚠️ أدخل رقم الحاوية','err'); return; }
+  if (!size) { toast('⚠️ اختر مقاس الحاوية','err'); return; }
+  if (containers.find(c=>c.num===num)) { toast('⚠️ رقم الحاوية مسجّل مسبقاً','err'); return; }
 
   try {
     const res = await supa.insert('containers', { num, client, contract, loc, size, price, gps_lat, gps_lng, maps_url });
@@ -1795,22 +1800,22 @@ async function addContainer() {
       if (priceEl) priceEl.value = '';
       await loadContainers();
       renderContainers();
-      toast(`â ØªÙØª Ø¥Ø¶Ø§ÙØ© Ø§ÙØ­Ø§ÙÙØ© ${num}`, 'ok');
+      toast(`✅ تمت إضافة الحاوية ${num}`, 'ok');
     } else {
-      toast('Ø®Ø·Ø£: ' + (res?.message || res?.error || 'ØºÙØ± ÙØ¹Ø±ÙÙ'), 'err');
+      toast('خطأ: ' + (res?.message || res?.error || 'غير معروف'), 'err');
     }
-  } catch(e) { toast('Ø®Ø·Ø£: ' + e.message, 'err'); }
+  } catch(e) { toast('خطأ: ' + e.message, 'err'); }
 }
 window.addContainer = addContainer;
 
 async function deleteContainer(id, num) {
-  if (!confirm(`ÙÙ ØªØ±ÙØ¯ Ø­Ø°Ù Ø§ÙØ­Ø§ÙÙØ© ${num}Ø`)) return;
+  if (!confirm(`هل تريد حذف الحاوية ${num}؟`)) return;
   try {
     await supa.delete('containers', id);
     await loadContainers();
     renderContainers();
-    toast(`ðï¸ Ø­ÙØ°ÙØª Ø§ÙØ­Ø§ÙÙØ© ${num}`, 'err');
-  } catch(e) { toast('Ø®Ø·Ø£: ' + e.message, 'err'); }
+    toast(`🗑️ حُذفت الحاوية ${num}`, 'err');
+  } catch(e) { toast('خطأ: ' + e.message, 'err'); }
 }
 window.deleteContainer = deleteContainer;
 
@@ -1821,28 +1826,28 @@ function renderContainers() {
     (c.loc&&c.loc.includes(q)) || (c.contract&&c.contract.toLowerCase().includes(q))
   );
   const countEl = document.getElementById('c-count');
-  if (countEl) countEl.textContent = `${filtered.length} Ø­Ø§ÙÙØ© ÙØ³Ø¬ÙÙØ©`;
+  if (countEl) countEl.textContent = `${filtered.length} حاوية مسجّلة`;
 
   const wrap = document.getElementById('cont-list');
   if (!wrap) return;
   if (!filtered.length) {
-    wrap.innerHTML = `<div class="empty-state"><span class="em-ico">ðï¸</span>${containers.length?'ÙØ§ ÙØªØ§Ø¦Ø¬ ÙÙØ¨Ø­Ø«':'ÙØ§ ØªÙØ¬Ø¯ Ø­Ø§ÙÙØ§Øª ÙØ³Ø¬ÙØ© Ø¨Ø¹Ø¯'}</div>`;
+    wrap.innerHTML = `<div class="empty-state"><span class="em-ico">🗑️</span>${containers.length?'لا نتائج للبحث':'لا توجد حاويات مسجلة بعد'}</div>`;
     return;
   }
   wrap.innerHTML = filtered.map(c => `
     <div class="cont-card">
       <div class="cont-num">${c.num}</div>
       <div class="cont-info">
-        <div class="cont-client">${c.client || '<span style="color:var(--muted);font-style:italic;">Ø¨Ø¯ÙÙ Ø§Ø³Ù Ø¹ÙÙÙ</span>'}</div>
+        <div class="cont-client">${c.client || '<span style="color:var(--muted);font-style:italic;">بدون اسم عميل</span>'}</div>
         <div class="cont-meta">
           <span class="sz-tag">${SZ_ICON[c.size]} ${SZ_LABEL[c.size]}</span>
-          ${c.loc ? `<span>ð ${c.loc}</span>` : ''}
-          ${c.contract ? `<span style="color:var(--blue);font-size:10px;">ð ${c.contract}</span>` : ''}
-          ${(c.price && currentUser.role==='mgmt') ? `<span style="background:#fef6ea;color:#d4680e;border:1px solid #f0c080;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700;">ð° ${Number(c.price).toLocaleString('ar-SA')} Ø±.Ø³</span>` : ''}
-          ${c.maps_url ? `<a href="${c.maps_url}" target="_blank" style="color:var(--green);font-size:11px;text-decoration:none;" onclick="event.stopPropagation()">ð</a>` : ''}
+          ${c.loc ? `<span>📍 ${c.loc}</span>` : ''}
+          ${c.contract ? `<span style="color:var(--blue);font-size:10px;">📄 ${c.contract}</span>` : ''}
+          ${(c.price && currentUser.role==='mgmt') ? `<span style="background:#fef6ea;color:#d4680e;border:1px solid #f0c080;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700;">💰 ${Number(c.price).toLocaleString('ar-SA')} ر.س</span>` : ''}
+          ${c.maps_url ? `<a href="${c.maps_url}" target="_blank" style="color:var(--green);font-size:11px;text-decoration:none;" onclick="event.stopPropagation()">📍</a>` : ''}
         </div>
       </div>
-      <button class="cont-del" onclick="deleteContainer('${c.id}','${c.num}')" title="Ø­Ø°Ù">ð</button>
+      <button class="cont-del" onclick="deleteContainer('${c.id}','${c.num}')" title="حذف">🗑</button>
     </div>
   `).join('');
 }
@@ -1874,7 +1879,7 @@ function searchContainerInput() {
   }).slice(0, 20); // max 20 results
 
   if (!filtered.length) {
-    dropdown.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:13px;">ÙØ§ ØªÙØ¬Ø¯ ÙØªØ§Ø¦Ø¬</div>';
+    dropdown.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:13px;">لا توجد نتائج</div>';
     dropdown.style.display = 'block';
     return;
   }
@@ -1882,7 +1887,7 @@ function searchContainerInput() {
   dropdown.innerHTML = filtered.map(c => `
     <div class="cnum-item" onmousedown="selectContainer('${c.num}')">
       <div class="cnum-item-num">${c.num}</div>
-      <div class="cnum-item-name">${c.client || '<span style="color:var(--muted);font-style:italic;">Ø¨Ø¯ÙÙ Ø§Ø³Ù</span>'}</div>
+      <div class="cnum-item-name">${c.client || '<span style="color:var(--muted);font-style:italic;">بدون اسم</span>'}</div>
       <div class="cnum-item-size">${SZ_ICON[c.size]||''} ${SZ_LABEL[c.size]||c.size}</div>
     </div>
   `).join('');
@@ -1905,7 +1910,7 @@ function selectContainer(num) {
   if (hidden) hidden.value = num;
 
   const c = containers.find(x=>x.num===num);
-  if (input) input.value = c ? (c.num + (c.client ? '  â  ' + c.client : '')) : num;
+  if (input) input.value = c ? (c.num + (c.client ? '  —  ' + c.client : '')) : num;
   if (dropdown) dropdown.style.display = 'none';
 
   onContainerSelect();
@@ -1932,9 +1937,9 @@ function onContainerSelect() {
     const mb = document.getElementById('manual-location-btn');
     if (mb) mb.style.display = 'none';
   }
-  document.getElementById('af-client').textContent = c.client   || 'â';
-  document.getElementById('af-loc').textContent    = c.loc      || 'â';
-  document.getElementById('af-size').textContent   = SZ_LABEL[c.size]||'â';
+  document.getElementById('af-client').textContent = c.client   || '—';
+  document.getElementById('af-loc').textContent    = c.loc      || '—';
+  document.getElementById('af-size').textContent   = SZ_LABEL[c.size]||'—';
   document.getElementById('autofill-banner').classList.add('show');
 }
 window.onContainerSelect = onContainerSelect;
@@ -1954,9 +1959,9 @@ function clearAutofill() {
 }
 window.clearAutofill = clearAutofill;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    DRIVER
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 function setNowTime() {
   const t = new Date();
   document.getElementById('f-time').value =
@@ -1970,7 +1975,7 @@ function updateDriverHero() {
   const d = new Date();
   const opts = { weekday:'long', day:'numeric', month:'long' };
   document.getElementById('h-meta').textContent =
-    `ð ${currentUser.truck || ''}  â¢  ${d.toLocaleDateString('ar-SA', opts)}`;
+    `🚛 ${currentUser.truck || ''}  •  ${d.toLocaleDateString('ar-SA', opts)}`;
   const myLifts = lifts.filter(l => l.driver === currentUser.name && isToday(l.ts));
   document.getElementById('hk-today').textContent = myLifts.length;
   document.getElementById('hk-containers').textContent = myLifts.reduce((s,l)=>s+l.qty,0);
@@ -1985,7 +1990,7 @@ function pickSize(el, sz) {
 }
 window.pickSize = pickSize;
 
-/* ââ EXIF GPS Extractor ââ */
+/* ══ EXIF GPS Extractor ══ */
 function readEXIFGPS(file) {
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -2065,7 +2070,7 @@ function showGPSBanner(gps) {
     banner.style.borderColor = 'var(--green-border)';
     if (link) { link.href = gps.mapsUrl; link.style.display = ''; }
     if (coord) coord.textContent = `${gps.lat}, ${gps.lng}`;
-    if (lbl) lbl.textContent = 'ØªÙ ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹ â';
+    if (lbl) lbl.textContent = 'تم تحديد الموقع ✅';
   } else {
     banner.style.display = 'none';
   }
@@ -2086,7 +2091,7 @@ async function handlePhotos(e) {
   renderPhotoPreview();
   e.target.value = '';
 
-  // Try to get GPS â EXIF first, then browser geolocation
+  // Try to get GPS — EXIF first, then browser geolocation
   if (!pendingGPS) {
     // Try EXIF from first file
     let gps = null;
@@ -2095,9 +2100,9 @@ async function handlePhotos(e) {
     if (gps) {
       pendingGPS = gps;
       showGPSBanner(gps);
-      toast('ð ØªÙ Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø§ÙÙÙÙØ¹ ÙÙ Ø§ÙØµÙØ±Ø©', 'ok');
+      toast('📍 تم استخراج الموقع من الصورة', 'ok');
     } else {
-      // EXIF not found â use browser geolocation
+      // EXIF not found — use browser geolocation
       getLocationFromBrowser();
     }
   }
@@ -2105,17 +2110,17 @@ async function handlePhotos(e) {
 window.handlePhotos = handlePhotos;
 
 function detectContainerGPS() {
-  if (!navigator.geolocation) { toast('â ï¸ Ø§ÙØ¬ÙØ§Ø² ÙØ§ ÙØ¯Ø¹Ù GPS','err'); return; }
-  toast('â³ Ø¬Ø§Ø±Ù ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹...','ok');
+  if (!navigator.geolocation) { toast('⚠️ الجهاز لا يدعم GPS','err'); return; }
+  toast('⏳ جاري تحديد الموقع...','ok');
   navigator.geolocation.getCurrentPosition(
     pos => {
       const lat = +pos.coords.latitude.toFixed(6);
       const lng = +pos.coords.longitude.toFixed(6);
       const el = document.getElementById('c-gps');
       if (el) el.value = `${lat}, ${lng}`;
-      toast('ð ØªÙ ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹','ok');
+      toast('📍 تم تحديد الموقع','ok');
     },
-    err => { toast('â ï¸ ØªØ¹Ø°ÙØ± ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹','err'); },
+    err => { toast('⚠️ تعذّر تحديد الموقع','err'); },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 }
@@ -2131,11 +2136,11 @@ function getLocationFromBrowser() {
     banner.style.background = 'linear-gradient(135deg,#fef9e7,#fef3cd)';
     banner.style.borderColor = '#f0c040';
   }
-  if (coord) coord.textContent = 'Ø¬Ø§Ø±Ù ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹...';
+  if (coord) coord.textContent = 'جاري تحديد الموقع...';
   const link = document.getElementById('gps-link');
   if (link) link.style.display = 'none';
   const lbl  = document.querySelector('#gps-banner div div:first-child');
-  if (lbl) lbl.textContent = 'â³ ÙØªÙ ØªØ­Ø¯ÙØ¯ ÙÙÙØ¹Ù...';
+  if (lbl) lbl.textContent = '⏳ يتم تحديد موقعك...';
 
   navigator.geolocation.getCurrentPosition(
     pos => {
@@ -2146,12 +2151,12 @@ function getLocationFromBrowser() {
       showGPSBanner(pendingGPS);
       const mb = document.getElementById('manual-location-btn');
       if (mb) mb.style.display = 'none';
-      toast('ð ØªÙ ØªØ­Ø¯ÙØ¯ ÙÙÙØ¹Ù Ø¨ÙØ¬Ø§Ø­', 'ok');
+      toast('📍 تم تحديد موقعك بنجاح', 'ok');
     },
     err => {
       const b = document.getElementById('gps-banner');
       if (b) b.style.display = 'none';
-      toast('â ï¸ ØªØ¹Ø°ÙØ± ØªØ­Ø¯ÙØ¯ Ø§ÙÙÙÙØ¹ â ØªØ£ÙØ¯ ÙÙ Ø§ÙØ³ÙØ§Ø­ Ø¨Ø§ÙÙØµÙÙ ÙÙÙÙÙØ¹', 'err');
+      toast('⚠️ تعذّر تحديد الموقع — تأكد من السماح بالوصول للموقع', 'err');
       console.warn('Geolocation error:', err.message);
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -2163,7 +2168,7 @@ function renderPhotoPreview() {
   wrap.innerHTML = pendingPhotos.map((p,i) => `
     <div class="thumb-wrap">
       <img src="${p.dataUrl}" alt="">
-      <button class="thumb-del" onclick="removePhoto(${i})">â</button>
+      <button class="thumb-del" onclick="removePhoto(${i})">✕</button>
     </div>
   `).join('');
 }
@@ -2185,9 +2190,9 @@ function clearGPS() {
 window.clearGPS = clearGPS;
 
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    PHOTO UPLOAD TO SUPABASE STORAGE
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 async function uploadPhotoToStorage(dataUrl, liftId, index) {
   try {
     // Convert base64 to blob
@@ -2233,12 +2238,13 @@ async function addLift() {
   const time     = document.getElementById('f-time').value;
   const notes    = document.getElementById('f-notes').value.trim();
 
-  if (!cnum)       { toast('â ï¸ Ø§Ø®ØªØ± Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©','err'); return; }
-  if (!chosenSize) { toast('â ï¸ Ø§Ø®ØªØ± ÙÙØ§Ø³ Ø§ÙØ­Ø§ÙÙØ©','err'); return; }
+  if (!cnum)       { toast('⚠️ اختر رقم الحاوية','err'); return; }
+  if (!chosenSize) { toast('⚠️ اختر مقاس الحاوية','err'); return; }
 
-  const gps_lat  = pendingGPS ? pendingGPS.lat : null;
-  const gps_lng  = pendingGPS ? pendingGPS.lng : null;
-  const maps_url = pendingGPS ? pendingGPS.mapsUrl : null;
+  const _gps = pendingGPS || window._autoGPS || null;
+  const gps_lat  = _gps ? _gps.lat : null;
+  const gps_lng  = _gps ? _gps.lng : null;
+  const maps_url = _gps ? _gps.mapsUrl : null;
 
   try {
     // First insert the lift to get its ID, then upload photos
@@ -2276,11 +2282,11 @@ async function addLift() {
       renderPhotoPreview();
       setNowTime();
       await loadLifts();
-      toast(`â ØªÙ ØªØ³Ø¬ÙÙ Ø§ÙØ±ÙØ¹Ø©${client ? ' â ' + client : ''}`, 'ok');
+      toast(`✅ تم تسجيل الرفعة${client ? ' — ' + client : ''}`, 'ok');
     } else {
-      toast('Ø®Ø·Ø£ ÙÙ Ø§ÙØ­ÙØ¸: ' + JSON.stringify(res), 'err');
+      toast('خطأ في الحفظ: ' + JSON.stringify(res), 'err');
     }
-  } catch(e) { toast('Ø®Ø·Ø£: ' + e.message, 'err'); }
+  } catch(e) { toast('خطأ: ' + e.message, 'err'); }
 }
 window.addLift = addLift;
 
@@ -2290,10 +2296,10 @@ function renderDriverList() {
   const wrap = document.getElementById('driver-list');
   if (!sub || !wrap) return;
 
-  sub.textContent = myLifts.length ? `${myLifts.length} Ø±ÙØ¹Ø© â¢ ${myLifts.reduce((s,l)=>s+l.qty,0)} Ø­Ø§ÙÙØ©` : 'ÙØ§ ØªÙØ¬Ø¯ Ø±ÙØ¹Ø§Øª Ø¨Ø¹Ø¯';
+  sub.textContent = myLifts.length ? `${myLifts.length} رفعة • ${myLifts.reduce((s,l)=>s+l.qty,0)} حاوية` : 'لا توجد رفعات بعد';
 
   if (!myLifts.length) {
-    wrap.innerHTML = '<div class="empty-state"><span class="em-ico">ð</span>ÙÙ ØªØ³Ø¬ÙÙ Ø£Ù Ø±ÙØ¹Ø§Øª Ø§ÙÙÙÙ</div>';
+    wrap.innerHTML = '<div class="empty-state"><span class="em-ico">🚛</span>لم تسجّل أي رفعات اليوم</div>';
     return;
   }
 
@@ -2301,41 +2307,41 @@ function renderDriverList() {
     <div class="lift-item">
       <div class="lift-num">${myLifts.length - i}</div>
       <div class="lift-body">
-        <div class="lift-client">${l.client || `Ø­Ø§ÙÙØ© ${l.cnum}`}</div>
+        <div class="lift-client">${l.client || `حاوية ${l.cnum}`}</div>
         <div class="lift-details">
           <span class="sz-badge">${SZ_ICON[l.size]} ${SZ_LABEL[l.size]}</span>
-          ${l.qty>1 ? `<span>Ã ${l.qty}</span>` : ''}
-          ${l.loc ? `<span>ð ${l.loc}</span>` : ''}
+          ${l.qty>1 ? `<span>× ${l.qty}</span>` : ''}
+          ${l.loc ? `<span>📍 ${l.loc}</span>` : ''}
           <span style="color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:10px;">${l.cnum}</span>
-          ${l.contract ? `<span style="color:var(--muted);">ð ${l.contract}</span>` : ''}
-          ${l.maps_url ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;text-decoration:none;">ð ÙÙÙØ¹</a>` : ''}
+          ${l.contract ? `<span style="color:var(--muted);">📄 ${l.contract}</span>` : ''}
+          ${l.maps_url ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;text-decoration:none;">📍 موقع</a>` : ''}
         </div>
         ${l._photosLoaded && l._photos?.length ? `
         <div class="lift-photos">
           ${l._photos.map(src=>`<img src="${src}" onclick="openLightbox('${src}')" alt="">`).join('')}
         </div>` : ''}
-        ${l.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:5px;">ð¬ ${l.notes}</div>` : ''}
+        ${l.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:5px;">💬 ${l.notes}</div>` : ''}
       </div>
       <div class="lift-time">${l.time}</div>
-      <button class="del-btn" onclick="deleteLift('${l.id}','${l.client||''}')">ð</button>
+      <button class="del-btn" onclick="deleteLift('${l.id}','${l.client||''}')">🗑</button>
     </div>
   `).join('');
 }
 window.renderDriverList = renderDriverList;
 
 async function deleteLift(id, clientName) {
-  if (!confirm('ÙÙ ØªØ±ÙØ¯ Ø­Ø°Ù ÙØ°Ù Ø§ÙØ±ÙØ¹Ø©Ø')) return;
+  if (!confirm('هل تريد حذف هذه الرفعة؟')) return;
   try {
     await supa.delete('lifts', id);
     await loadLifts();
-    toast('ðï¸ Ø­ÙØ°ÙØª Ø§ÙØ±ÙØ¹Ø©' + (clientName ? ' â ' + clientName : ''), 'err');
-  } catch(e) { toast('Ø®Ø·Ø£: ' + e.message, 'err'); }
+    toast('🗑️ حُذفت الرفعة' + (clientName ? ' — ' + clientName : ''), 'err');
+  } catch(e) { toast('خطأ: ' + e.message, 'err'); }
 }
 window.deleteLift = deleteLift;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    PERIOD / FILTER HELPERS
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 function toLocalDate(ts) {
   // Handle both Date objects and strings
   const d = (ts instanceof Date) ? ts : new Date(ts);
@@ -2361,11 +2367,8 @@ function getFilteredLifts() {
     const dStr = toLocalDate(l.ts);
     const d = new Date(l.ts);
     if (activePeriod === 'today') return dStr === todayStr;
-    if (activePeriod === 'week') {
-      const s = new Date(n); s.setDate(n.getDate() - 6); s.setHours(0,0,0,0);
-      return d >= s;
-    }
-    if (activePeriod === 'month') { const s = new Date(n); s.setDate(n.getDate() - 29); s.setHours(0,0,0,0); return d >= s; }
+    if (activePeriod === 'week') { const sw=new Date(n); sw.setDate(n.getDate()-6); sw.setHours(0,0,0,0); return d>=sw; }
+    if (activePeriod === 'month') { const sm=new Date(n); sm.setDate(n.getDate()-29); sm.setHours(0,0,0,0); return d>=sm; }
     if (activePeriod === 'year') return d.getFullYear()===n.getFullYear();
     if (activePeriod === 'custom' && fd && td) return dStr >= fd && dStr <= td;
     return true;
@@ -2380,9 +2383,9 @@ function setPeriod(p, btn) {
 }
 window.setPeriod = setPeriod;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    MANAGEMENT RENDER
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 function renderMgmt() {
   const base = getFilteredLifts();
   const q    = document.getElementById('m-q')?.value.toLowerCase() || '';
@@ -2409,12 +2412,12 @@ function renderMgmt() {
   const drvSel = document.getElementById('m-drv');
   if (drvSel) {
     const cur = drvSel.value;
-    drvSel.innerHTML = '<option value="">ÙÙ Ø§ÙØ³Ø§Ø¦ÙÙÙ</option>' +
+    drvSel.innerHTML = '<option value="">كل السائقين</option>' +
       drivers.map(d=>`<option ${d===cur?'selected':''} value="${d}">${d}</option>`).join('');
   }
 
   // Table
-  setEl('m-sub', `${filtered.length} Ø±ÙØ¹Ø©${filtered.length!==base.length?` (ÙÙ ${base.length})`:''}`);
+  setEl('m-sub', `${filtered.length} رفعة${filtered.length!==base.length?` (من ${base.length})`:''}`);
   const tbody = document.getElementById('m-tbody');
   const empty = document.getElementById('m-empty');
   if (!tbody) return;
@@ -2427,24 +2430,25 @@ function renderMgmt() {
       <tr>
         <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;">${filtered.length-i}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);">${l.cnum}</td>
-        <td style="font-weight:700;">${l.client || `<span style="color:var(--muted);font-style:italic;">Ø­Ø§ÙÙØ© ${l.cnum}</span>`}</td>
-        <td style="font-size:11px;color:var(--muted);">${l.contract||'â'}</td>
-        <td style="font-size:11px;color:var(--muted);">${l.loc||'â'}</td>
+        <td style="font-weight:700;">${l.client || `<span style="color:var(--muted);font-style:italic;">حاوية ${l.cnum}</span>`}</td>
+        <td style="font-size:11px;color:var(--muted);">${l.contract||'—'}</td>
+        <td style="font-size:11px;color:var(--muted);">${l.loc||'—'}</td>
         <td><span class="sz-tag">${SZ_ICON[l.size]} ${SZ_LABEL[l.size]}</span></td>
         <td style="font-weight:800;text-align:center;">${l.qty}</td>
-        <td><span class="d-badge">ð¤ ${l.driver}</span></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.truck||'â'}</td>
+        <td><span class="d-badge">👤 ${l.driver}</span></td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.truck||'—'}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.time}</td>
+        <td style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">${toLocalDate(l.ts)}</td>
         <td>${l._photosLoaded
-          ? (l._photos?.length ? l._photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ') : '<span style="color:var(--muted);font-size:11px;">â</span>')
-          : `<button onclick="loadLiftPhotos('${l.id}',this)" style="background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;">ð· ØµÙØ±</button>`}</td>
+          ? (l._photos?.length ? l._photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ') : '<span style="color:var(--muted);font-size:11px;">—</span>')
+          : `<button onclick="loadLiftPhotos('${l.id}',this)" style="background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;">📷 صور</button>`}</td>
         <td>${l.maps_url
-          ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">ð Ø®Ø±ÙØ·Ø©</a>`
-          : '<span style="color:var(--muted);font-size:11px;">â</span>'}</td>
-        <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||'â'}</td>
+          ? `<a href="${l.maps_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📍 خريطة</a>`
+          : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
+        <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||'—'}</td>
         <td style="white-space:nowrap;">
-          <button onclick="openEditLift('${l.id}')" style="background:var(--blue-pale);color:var(--blue);border:1px solid rgba(26,92,158,0.25);border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;margin-left:4px;">âï¸</button>
-          <button onclick="deleteLift('${l.id}','${l.client||''}')" style="background:var(--red-pale);color:var(--red);border:1px solid rgba(220,53,69,0.25);border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">ðï¸</button>
+          <button onclick="openEditLift('${l.id}')" style="background:var(--blue-pale);color:var(--blue);border:1px solid rgba(26,92,158,0.25);border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;margin-left:4px;">✏️</button>
+          <button onclick="deleteLift('${l.id}','${l.client||''}')" style="background:var(--red-pale);color:var(--red);border:1px solid rgba(220,53,69,0.25);border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">🗑️</button>
         </td>
       </tr>
     `).join('');
@@ -2454,9 +2458,9 @@ function renderMgmt() {
   const board = document.getElementById('drv-board');
   if (board) {
     if (!drivers.length) {
-      board.innerHTML='<div class="empty-state"><span class="em-ico">ð¤</span>ÙØ§ Ø¨ÙØ§ÙØ§Øª</div>';
+      board.innerHTML='<div class="empty-state"><span class="em-ico">👤</span>لا بيانات</div>';
     } else {
-      const sorted = drivers.map(d=>({ d, count:base.filter(l=>l.driver===d).length, truck:base.find(l=>l.driver===d)?.truck||'â' })).sort((a,b)=>b.count-a.count);
+      const sorted = drivers.map(d=>({ d, count:base.filter(l=>l.driver===d).length, truck:base.find(l=>l.driver===d)?.truck||'—' })).sort((a,b)=>b.count-a.count);
       const rc=['gold','silver','bronze'];
       board.innerHTML = sorted.map((r,i)=>{
         const ini=r.d.split(' ').map(w=>w[0]).join('').slice(0,2);
@@ -2472,7 +2476,7 @@ function renderMgmt() {
     const szC=sizes.map(s=>({s,c:base.filter(l=>l.size===s).length}));
     const mx=Math.max(...szC.map(x=>x.c),1);
     szBoard.innerHTML = !base.length
-      ? '<div class="empty-state"><span class="em-ico">ð¦</span>ÙØ§ Ø¨ÙØ§ÙØ§Øª</div>'
+      ? '<div class="empty-state"><span class="em-ico">📦</span>لا بيانات</div>'
       : '<div style="padding:8px 0;">' + szC.map(({s,c})=>`<div class="sz-bar-item"><div class="szb-lbl">${SZ_ICON[s]} ${SZ_LABEL[s]}</div><div class="szb-wrap"><div class="szb-fill" style="width:${(c/mx)*100}%"></div></div><div class="szb-num">${c}</div></div>`).join('') + '</div>';
   }
 
@@ -2489,20 +2493,20 @@ function renderMonthChart() {
   chart.innerHTML = counts.map((c,m)=>`<div class="mc-bar-wrap"><div class="mc-val">${c||''}</div><div class="mc-bar" style="height:${(c/max)*70}px;"></div><div class="mc-lbl">${MONTHS_AR[m].slice(0,3)}</div></div>`).join('');
 }
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    EXPORT CSV
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    EXCEL / CSV IMPORT
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 async function importFromExcel(e) {
   const file = e.target.files[0];
   if (!file) return;
   e.target.value = '';
 
   const ext = file.name.split('.').pop().toLowerCase();
-  toast('â³ Ø¬Ø§Ø±Ù ÙØ±Ø§Ø¡Ø© Ø§ÙÙÙÙ...', 'ok');
+  toast('⏳ جاري قراءة الملف...', 'ok');
 
   try {
     if (ext === 'csv') {
@@ -2519,10 +2523,10 @@ async function importFromExcel(e) {
       const csv = window.XLSX.utils.sheet_to_csv(ws, { rawNumbers: true });
       await parseAndImportCSV(csv);
     } else {
-      toast('â ï¸ ÙØ±Ø¬Ù Ø±ÙØ¹ ÙÙÙ Excel Ø£Ù CSV ÙÙØ·', 'err');
+      toast('⚠️ يرجى رفع ملف Excel أو CSV فقط', 'err');
     }
   } catch(err) {
-    toast('Ø®Ø·Ø£ ÙÙ ÙØ±Ø§Ø¡Ø© Ø§ÙÙÙÙ: ' + err.message, 'err');
+    toast('خطأ في قراءة الملف: ' + err.message, 'err');
     console.error(err);
   }
 }
@@ -2537,10 +2541,10 @@ function loadScript(src) {
 }
 
 const SZ_MAP = {
-  '240': '240L', '240l': '240L', '240 ÙØªØ±': '240L', '240ÙØªØ±': '240L',
-  '2': '2Y', '2y': '2Y', '2 ÙØ§Ø±Ø¯Ù': '2Y', '2ÙØ§Ø±Ø¯Ù': '2Y', 'Ù¢ ÙØ§Ø±Ø¯Ù': '2Y',
-  '4': '4Y', '4y': '4Y', '4 ÙØ§Ø±Ø¯Ù': '4Y', '4ÙØ§Ø±Ø¯Ù': '4Y', 'Ù¤ ÙØ§Ø±Ø¯Ù': '4Y',
-  '6': '6Y', '6y': '6Y', '6 ÙØ§Ø±Ø¯Ù': '6Y', '6ÙØ§Ø±Ø¯Ù': '6Y', 'Ù¦ ÙØ§Ø±Ø¯Ù': '6Y',
+  '240': '240L', '240l': '240L', '240 لتر': '240L', '240لتر': '240L',
+  '2': '2Y', '2y': '2Y', '2 يارده': '2Y', '2يارده': '2Y', '٢ يارده': '2Y',
+  '4': '4Y', '4y': '4Y', '4 يارده': '4Y', '4يارده': '4Y', '٤ يارده': '4Y',
+  '6': '6Y', '6y': '6Y', '6 يارده': '6Y', '6يارده': '6Y', '٦ يارده': '6Y',
 };
 
 function normalizeSize(raw) {
@@ -2551,7 +2555,7 @@ function normalizeSize(raw) {
 
 async function parseAndImportCSV(text) {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-  if (lines.length < 2) { toast('â ï¸ Ø§ÙÙÙÙ ÙØ§Ø±Øº', 'err'); return; }
+  if (lines.length < 2) { toast('⚠️ الملف فارغ', 'err'); return; }
 
   const clean = s => (s == null ? '' : s.toString().replace(/^["'\s\u200f\u200e]+|["'\s\u200f\u200e]+$/g, '').trim());
 
@@ -2580,25 +2584,25 @@ async function parseAndImportCSV(text) {
     return -1;
   };
 
-  const iClient = col('Ø¹ÙÙÙ', 'Ø§Ø³Ù', 'client', 'name');
-  const iPrice  = col('Ø§Ø¬ÙØ§ÙÙ', 'Ø³Ø¹Ø±', 'Ø¹ÙØ¯', 'price', 'ØªÙÙÙØ©', 'ÙÙÙØ©');
-  const iSize   = col('ÙÙØ§Ø³', 'Ø­Ø¬Ù', 'size');
+  const iClient = col('عميل', 'اسم', 'client', 'name');
+  const iPrice  = col('اجمالي', 'سعر', 'عقد', 'price', 'تكلفة', 'قيمة');
+  const iSize   = col('مقاس', 'حجم', 'size');
   const iNum = (() => {
     for (let i = 0; i < header.length; i++) {
-      if (header[i].includes('Ø±ÙÙØ§ÙØ­Ø§ÙÙØ©') || header[i].includes('container') || header[i] === 'num') return i;
+      if (header[i].includes('رقمالحاوية') || header[i].includes('container') || header[i] === 'num') return i;
     }
     for (let i = 1; i < header.length; i++) {
-      if ((header[i].includes('Ø±ÙÙ') || header[i].includes('num')) && !header[i].includes('ÙÙØ§Ø³') && !header[i].includes('Ø¹ÙØ¯') && !header[i].includes('Ø¹ÙÙÙ')) return i;
+      if ((header[i].includes('رقم') || header[i].includes('num')) && !header[i].includes('مقاس') && !header[i].includes('عقد') && !header[i].includes('عميل')) return i;
     }
     return -1;
   })();
 
-  console.log('Column indices â client:', iClient, 'price:', iPrice, 'size:', iSize, 'num:', iNum);
+  console.log('Column indices — client:', iClient, 'price:', iPrice, 'size:', iSize, 'num:', iNum);
 
   if (iClient < 0) {
     // Show raw data so user can see what columns exist
     const preview = rawHeader.join(' | ');
-    toast('â ï¸ ÙÙ Ø£Ø¬Ø¯ Ø¹ÙÙØ¯ Ø§ÙØ¹ÙÙÙ. Ø§ÙØ£Ø¹ÙØ¯Ø© Ø§ÙÙÙØ¬ÙØ¯Ø©: ' + preview, 'err');
+    toast('⚠️ لم أجد عمود العميل. الأعمدة الموجودة: ' + preview, 'err');
     return;
   }
 
@@ -2606,10 +2610,10 @@ async function parseAndImportCSV(text) {
     if (!v || v === '0') return '2Y';
     const s = v.toString().trim().toLowerCase().replace(/\s+/g,'');
     const map = {
-      '240': '240L', '240l': '240L', '240ÙØªØ±': '240L',
-      '2': '2Y', '2y': '2Y', '2ÙØ§Ø±Ø¯Ù': '2Y',
-      '4': '4Y', '4y': '4Y', '4ÙØ§Ø±Ø¯Ù': '4Y',
-      '6': '6Y', '6y': '6Y', '6ÙØ§Ø±Ø¯Ù': '6Y',
+      '240': '240L', '240l': '240L', '240لتر': '240L',
+      '2': '2Y', '2y': '2Y', '2يارده': '2Y',
+      '4': '4Y', '4y': '4Y', '4يارده': '4Y',
+      '6': '6Y', '6y': '6Y', '6يارده': '6Y',
     };
     return map[s] || SZ_MAP[s] || '2Y';
   };
@@ -2643,30 +2647,30 @@ async function parseAndImportCSV(text) {
     const size  = iSize  >= 0 ? toSize(cols[iSize])            : '2Y';
     const price = iPrice >= 0 ? (parseFloat(cols[iPrice]) || 0) : 0;
 
-    console.log('Row', i, 'â num:', num, 'client:', client, 'size:', size, 'price:', price);
+    console.log('Row', i, '→ num:', num, 'client:', client, 'size:', size, 'price:', price);
     rows.push({ num, client, size, price, contract: '', loc: '' });
   }
 
-  if (!rows.length) { toast('â ï¸ ÙØ§ ØªÙØ¬Ø¯ Ø¨ÙØ§ÙØ§Øª ØµØ§ÙØ­Ø© ÙÙ Ø§ÙÙÙÙ', 'err'); return; }
+  if (!rows.length) { toast('⚠️ لا توجد بيانات صالحة في الملف', 'err'); return; }
 
   // Show preview of first 3 rows before importing
   const preview = rows.slice(0,3).map((r,i) =>
-    (i+1) + '. ' + r.num + ' â ' + r.client.substring(0,20) + ' â ' + SZ_LABEL[r.size]
+    (i+1) + '. ' + r.num + ' — ' + r.client.substring(0,20) + ' — ' + SZ_LABEL[r.size]
   ).join('\n');
 
   const newRows  = rows.filter(r => !containers.find(c => c.num === r.num));
   const existing = rows.filter(r =>  containers.find(c => c.num === r.num));
   const skipped  = existing.length;
 
-  const msg = 'ÙØ¹Ø§ÙÙØ© Ø£ÙÙ 3 Ø³Ø¬ÙØ§Øª:\n' + preview +
-    '\n\nâââââââââââââââ\n' +
-    'Ø³ÙØªÙ Ø§Ø³ØªÙØ±Ø§Ø¯ ' + newRows.length + ' Ø¹ÙÙÙ Ø¬Ø¯ÙØ¯' +
-    (skipped ? '\n(' + skipped + ' ÙÙØ¬ÙØ¯ ÙØ³Ø¨ÙØ§Ù â Ø³ÙÙØ­Ø¯ÙÙØ«)' : '') +
-    '\n\nÙÙ ØªØ±ÙØ¯ Ø§ÙÙØªØ§Ø¨Ø¹Ø©Ø';
+  const msg = 'معاينة أول 3 سجلات:\n' + preview +
+    '\n\n───────────────\n' +
+    'سيتم استيراد ' + newRows.length + ' عميل جديد' +
+    (skipped ? '\n(' + skipped + ' موجود مسبقاً — سيُحدَّث)' : '') +
+    '\n\nهل تريد المتابعة؟';
 
   if (!confirm(msg)) return;
 
-  toast('â³ Ø¬Ø§Ø±Ù Ø§ÙØ§Ø³ØªÙØ±Ø§Ø¯...', 'ok');
+  toast('⏳ جاري الاستيراد...', 'ok');
   let ok = 0, updated = 0, fail = 0;
 
   // Insert new rows
@@ -2702,16 +2706,16 @@ async function parseAndImportCSV(text) {
 
   await loadContainers();
   renderContainers();
-  const msg2 = 'ØªÙ Ø§Ø³ØªÙØ±Ø§Ø¯ ' + ok + ' Ø¬Ø¯ÙØ¯' +
-    (updated ? ' ÙØªØ­Ø¯ÙØ« ' + updated : '') +
-    (fail ? ' â ÙØ´Ù ' + fail : '');
+  const msg2 = 'تم استيراد ' + ok + ' جديد' +
+    (updated ? ' وتحديث ' + updated : '') +
+    (fail ? ' — فشل ' + fail : '');
   toast(msg2, ok > 0 || updated > 0 ? 'ok' : 'err');
 }
 window.parseAndImportCSV = parseAndImportCSV;
 
 
 async function loadLiftPhotos(liftId, btn) {
-  if (btn) btn.textContent = 'â³';
+  if (btn) btn.textContent = '⏳';
   try {
     const r = await fetch(
       `${SUPABASE_URL}/rest/v1/lifts?select=id,photos&id=eq.${liftId}`,
@@ -2727,15 +2731,15 @@ async function loadLiftPhotos(liftId, btn) {
       }
     }
   } catch(e) {
-    if (btn) btn.textContent = 'ð· ØµÙØ±';
+    if (btn) btn.textContent = '📷 صور';
   }
 }
 window.loadLiftPhotos = loadLiftPhotos;
 
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    EDIT LIFT (MGMT ONLY)
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 let _editingLiftId = null;
 
 function openEditLift(id) {
@@ -2781,7 +2785,7 @@ async function saveEditLift() {
     notes:    document.getElementById('edit-notes').value.trim(),
   };
 
-  if (!updates.cnum) { toast('â ï¸ Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ© ÙØ·ÙÙØ¨', 'err'); return; }
+  if (!updates.cnum) { toast('⚠️ رقم الحاوية مطلوب', 'err'); return; }
 
   try {
     const r = await fetch(
@@ -2806,13 +2810,13 @@ async function saveEditLift() {
       }
       closeEditModal();
       renderMgmt();
-      toast('â ØªÙ Ø­ÙØ¸ Ø§ÙØªØ¹Ø¯ÙÙØ§Øª Ø¨ÙØ¬Ø§Ø­', 'ok');
+      toast('✅ تم حفظ التعديلات بنجاح', 'ok');
     } else {
       const err = await r.text();
-      toast('Ø®Ø·Ø£ ÙÙ Ø§ÙØ­ÙØ¸: ' + err.substring(0, 80), 'err');
+      toast('خطأ في الحفظ: ' + err.substring(0, 80), 'err');
     }
   } catch(e) {
-    toast('Ø®Ø·Ø£: ' + e.message, 'err');
+    toast('خطأ: ' + e.message, 'err');
   }
 }
 window.saveEditLift = saveEditLift;
@@ -2823,8 +2827,8 @@ document.getElementById('edit-modal')?.addEventListener('click', function(e) {
 });
 
 function exportContainersCSV() {
-  if (!containers.length) { toast('â ï¸ ÙØ§ ØªÙØ¬Ø¯ Ø­Ø§ÙÙØ§Øª ÙÙØªØµØ¯ÙØ±','err'); return; }
-  const hdr = ['Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©','Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ','Ø±ÙÙ Ø§ÙØ¹ÙØ¯','Ø§ÙÙÙÙØ¹','Ø§ÙÙÙØ§Ø³','Ø§ÙØ³Ø¹Ø± Ø§ÙØ³ÙÙÙ (Ø±ÙØ§Ù)','Ø®Ø· Ø§ÙØ¹Ø±Ø¶','Ø®Ø· Ø§ÙØ·ÙÙ'];
+  if (!containers.length) { toast('⚠️ لا توجد حاويات للتصدير','err'); return; }
+  const hdr = ['رقم الحاوية','اسم العميل','رقم العقد','الموقع','المقاس','السعر السنوي (ريال)','خط العرض','خط الطول'];
   const rows = containers.map(c => [
     c.num, c.client||'', c.contract||'', c.loc||'',
     SZ_LABEL[c.size]||c.size, c.price||0, c.gps_lat||'', c.gps_lng||''
@@ -2833,16 +2837,16 @@ function exportContainersCSV() {
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `Ø£Ø±ÙÙØ©-Ø­Ø§ÙÙØ§Øª-${new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')}.csv`;
+  a.download = `أروية-حاويات-${new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')}.csv`;
   a.click();
-  toast('ð¥ ØªÙ ØªØµØ¯ÙØ± ÙØ§Ø¦ÙØ© Ø§ÙØ­Ø§ÙÙØ§Øª','ok');
+  toast('📥 تم تصدير قائمة الحاويات','ok');
 }
 window.exportContainersCSV = exportContainersCSV;
 
 function exportCSV() {
   const base = getFilteredLifts();
-  if (!base.length) { toast('â ï¸ ÙØ§ ØªÙØ¬Ø¯ Ø¨ÙØ§ÙØ§Øª ÙÙØªØµØ¯ÙØ±','err'); return; }
-  const hdr = ['#','Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©','Ø§ÙØ¹ÙÙÙ','Ø±ÙÙ Ø§ÙØ¹ÙØ¯','Ø§ÙÙÙÙØ¹','Ø§ÙÙÙØ§Ø³','Ø§ÙØ¹Ø¯Ø¯','Ø§ÙØ³Ø§Ø¦Ù','Ø§ÙØ´Ø§Ø­ÙØ©','Ø§ÙÙÙØª','Ø®Ø· Ø§ÙØ¹Ø±Ø¶','Ø®Ø· Ø§ÙØ·ÙÙ','Ø±Ø§Ø¨Ø· Ø§ÙØ®Ø±ÙØ·Ø©','ÙÙØ§Ø­Ø¸Ø§Øª'];
+  if (!base.length) { toast('⚠️ لا توجد بيانات للتصدير','err'); return; }
+  const hdr = ['#','رقم الحاوية','العميل','رقم العقد','الموقع','المقاس','العدد','السائق','الشاحنة','الوقت','خط العرض','خط الطول','رابط الخريطة','ملاحظات'];
   const rows = base.map((l,i)=>[
     base.length-i, l.cnum, l.client||'', l.contract||'', l.loc||'',
     SZ_LABEL[l.size], l.qty, l.driver, l.truck||'', l.time,
@@ -2852,15 +2856,15 @@ function exportCSV() {
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `Ø£Ø±ÙÙØ©-Ø±ÙØ¹Ø§Øª-${new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')}.csv`;
+  a.download = `أروية-رفعات-${new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')}.csv`;
   a.click();
-  toast('ð¥ ØªÙ Ø§ÙØªØµØ¯ÙØ± Ø¨ÙØ¬Ø§Ø­','ok');
+  toast('📥 تم التصدير بنجاح','ok');
 }
 window.exportCSV = exportCSV;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    LIGHTBOX & TOAST
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 function openLightbox(src) {
   document.getElementById('lb-img').src = src;
   document.getElementById('lightbox').classList.add('open');
@@ -2877,9 +2881,9 @@ function toast(msg, type='ok') {
 }
 window.toast = toast;
 
-/* ââââââââââââââââââââââââââââââââââââââââââ
+/* ══════════════════════════════════════════
    AUTO-LOAD SETTINGS ON PAGE OPEN
-ââââââââââââââââââââââââââââââââââââââââââ */
+══════════════════════════════════════════ */
 // Load drivers/trucks from Supabase immediately when page loads
 // so the login dropdown is always up-to-date
 (async function initSettings() {
@@ -2903,71 +2907,113 @@ window.toast = toast;
     refreshDriverSelects();
   }
 })();
+
+
+/* ══ AUTO GPS WATCH ══ */
+(function(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.watchPosition(
+    function(p){ window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)}; },
+    function(e){ console.warn('GPS:',e.message); },
+    {enableHighAccuracy:true,maximumAge:30000}
+  );
+})();
+
+/* ══ MULTILINGUAL ══ */
+const LANG={
+  ar:{dir:'rtl',appName:'أروية للخدمات',appSub:'نظام متابعة رفع الحاويات',mgmtBtn:'إدارة التشغيل',driverBtn:'سائق',loginBtn:'دخول →',driverLbl:'اسم السائق',truckLbl:'رقم الشاحنة',passLbl:'كلمة المرور',passPlh:'أدخل كلمة مرور الإدارة',searchPlh:'🔍 اكتب رقم الحاوية أو اسم العميل...',logoutBtn:'خروج',today:'اليوم',week:'آخر 7 أيام',month:'آخر 30 يوماً',year:'هذا العام'},
+  en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking System',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',driverLbl:'Driver Name',truckLbl:'Truck Number',passLbl:'Password',passPlh:'Enter management password',searchPlh:'🔍 Search container or client...',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},
+  ur:{dir:'rtl',appName:'اروية سروسز',appSub:'کنٹینر لفٹ ٹریکنگ سسٹم',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائیور',loginBtn:'داخل ہوں →',driverLbl:'ڈرائیور کا نام',truckLbl:'ٹرک نمبر',passLbl:'پاس ورڈ',passPlh:'انتظامی پاس ورڈ',searchPlh:'🔍 کنٹینر یا کلائنٹ تلاش کریں...',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال'}
+};
+let currentLang=localStorage.getItem('arwiya_lang')||'ar';
+function setLang(lang){currentLang=lang;localStorage.setItem('arwiya_lang',lang);_applyLang();}
+window.setLang=setLang;
+function _applyLang(){
+  const L=LANG[currentLang];if(!L)return;
+  document.documentElement.dir=L.dir;
+  ['ar','en','ur'].forEach(l=>{const b=document.getElementById('btn-'+l);if(b)b.style.background=l===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});
+  const _t=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
+  const _p=(id,txt)=>{const e=document.getElementById(id);if(e)e.placeholder=txt;};
+  _t('.app-name',L.appName);_t('.app-sub',L.appSub);
+  _t('#rt-mgmt .role-label',L.mgmtBtn);_t('#rt-driver .role-label',L.driverBtn);
+  _p('l-pass',L.passPlh);_p('f-cnum-search',L.searchPlh);
+  const logoutEl=document.querySelector('button[onclick="doLogout()"]');if(logoutEl)logoutEl.textContent=L.logoutBtn;
+  const periodMap={today:L.today,week:L.week,month:L.month,year:L.year};
+  document.querySelectorAll('.period-btn').forEach(b=>{
+    const m=b.getAttribute('onclick')?.match(/'(\w+)'/);
+    if(m&&periodMap[m[1]])b.textContent=periodMap[m[1]];
+  });
+}
+// Apply on load and after login
+const _origLaunch=window.launchApp;
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(_applyLang,300);});
+setTimeout(_applyLang,500);
+
 </script>
 
-<!-- ââ Edit Lift Modal ââ -->
+<!-- ══ Edit Lift Modal ══ -->
 <div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:white;border-radius:20px;padding:28px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);" dir="rtl">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-size:18px;font-weight:800;">âï¸ ØªØ¹Ø¯ÙÙ Ø§ÙØ±ÙØ¹Ø©</div>
-      <button onclick="closeEditModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);">â</button>
+      <div style="font-size:18px;font-weight:800;">✏️ تعديل الرفعة</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);">✕</button>
     </div>
 
     <div style="display:grid;gap:14px;">
       <div class="field">
-        <label>Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©</label>
-        <input type="text" id="edit-cnum" class="fi" placeholder="Ø±ÙÙ Ø§ÙØ­Ø§ÙÙØ©">
+        <label>رقم الحاوية</label>
+        <input type="text" id="edit-cnum" class="fi" placeholder="رقم الحاوية">
       </div>
       <div class="field">
-        <label>Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ</label>
-        <input type="text" id="edit-client" class="fi" placeholder="Ø§Ø³Ù Ø§ÙØ¹ÙÙÙ">
+        <label>اسم العميل</label>
+        <input type="text" id="edit-client" class="fi" placeholder="اسم العميل">
       </div>
       <div class="field">
-        <label>Ø±ÙÙ Ø§ÙØ¹ÙØ¯</label>
-        <input type="text" id="edit-contract" class="fi" placeholder="Ø±ÙÙ Ø§ÙØ¹ÙØ¯">
+        <label>رقم العقد</label>
+        <input type="text" id="edit-contract" class="fi" placeholder="رقم العقد">
       </div>
       <div class="field">
-        <label>Ø§ÙÙÙÙØ¹</label>
-        <input type="text" id="edit-loc" class="fi" placeholder="Ø§ÙÙÙÙØ¹">
+        <label>الموقع</label>
+        <input type="text" id="edit-loc" class="fi" placeholder="الموقع">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="field">
-          <label>Ø§ÙÙÙØ§Ø³</label>
+          <label>المقاس</label>
           <select id="edit-size" class="fi">
-            <option value="240L">240 ÙØªØ±</option>
-            <option value="2Y">2 ÙØ§Ø±Ø¯Ù</option>
-            <option value="4Y">4 ÙØ§Ø±Ø¯Ù</option>
-            <option value="6Y">6 ÙØ§Ø±Ø¯Ù</option>
+            <option value="240L">240 لتر</option>
+            <option value="2Y">2 يارده</option>
+            <option value="4Y">4 يارده</option>
+            <option value="6Y">6 يارده</option>
           </select>
         </div>
         <div class="field">
-          <label>Ø§ÙØ¹Ø¯Ø¯</label>
+          <label>العدد</label>
           <input type="number" id="edit-qty" class="fi" min="1" value="1">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="field">
-          <label>Ø§ÙÙÙØª</label>
+          <label>الوقت</label>
           <input type="time" id="edit-time" class="fi">
         </div>
         <div class="field">
-          <label>Ø§ÙØ³Ø§Ø¦Ù</label>
-          <input type="text" id="edit-driver" class="fi" placeholder="Ø§Ø³Ù Ø§ÙØ³Ø§Ø¦Ù">
+          <label>السائق</label>
+          <input type="text" id="edit-driver" class="fi" placeholder="اسم السائق">
         </div>
       </div>
       <div class="field">
-        <label>Ø§ÙØ´Ø§Ø­ÙØ©</label>
-        <input type="text" id="edit-truck" class="fi" placeholder="Ø±ÙÙ Ø§ÙØ´Ø§Ø­ÙØ©">
+        <label>الشاحنة</label>
+        <input type="text" id="edit-truck" class="fi" placeholder="رقم الشاحنة">
       </div>
       <div class="field">
-        <label>ÙÙØ§Ø­Ø¸Ø§Øª</label>
-        <textarea id="edit-notes" class="fi" rows="2" placeholder="ÙÙØ§Ø­Ø¸Ø§Øª..."></textarea>
+        <label>ملاحظات</label>
+        <textarea id="edit-notes" class="fi" rows="2" placeholder="ملاحظات..."></textarea>
       </div>
     </div>
 
     <div style="display:flex;gap:10px;margin-top:20px;">
-      <button onclick="saveEditLift()" style="flex:1;padding:13px;background:linear-gradient(135deg,#2aad62,#1d8a4d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">ð¾ Ø­ÙØ¸ Ø§ÙØªØ¹Ø¯ÙÙØ§Øª</button>
-      <button onclick="closeEditModal()" style="padding:13px 20px;background:var(--sand2);color:var(--dark);border:none;border-radius:12px;font-family:inherit;font-size:15px;cursor:pointer;">Ø¥ÙØºØ§Ø¡</button>
+      <button onclick="saveEditLift()" style="flex:1;padding:13px;background:linear-gradient(135deg,#2aad62,#1d8a4d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">💾 حفظ التعديلات</button>
+      <button onclick="closeEditModal()" style="padding:13px 20px;background:var(--sand2);color:var(--dark);border:none;border-radius:12px;font-family:inherit;font-size:15px;cursor:pointer;">إلغاء</button>
     </div>
   </div>
 </div>
