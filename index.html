@@ -933,7 +933,11 @@ tr:hover td { background:var(--green-pale); }
 </style>
 </head>
 <body>
-<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;"><button onclick="setLang('ar')" id="btn-ar" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:12px;font-weight:800;cursor:pointer;">ع</button><button onclick="setLang('en')" id="btn-en" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">EN</button><button onclick="setLang('ur')" id="btn-ur" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">اردو</button></div>
+<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;">
+  <button onclick="setLang('ar')" id="btn-ar" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:12px;font-weight:800;cursor:pointer;">ع</button>
+  <button onclick="setLang('en')" id="btn-en" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">EN</button>
+  <button onclick="setLang('ur')" id="btn-ur" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">اردو</button>
+</div>
 
 <!-- ══ Loading overlay ══ -->
 <div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(24,34,24,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:white;font-size:15px;font-weight:700;">
@@ -1740,8 +1744,56 @@ async function loadContainers() {
   } catch(e) { console.error('loadContainers:', e); }
 }
 
-async function loadLifts(){try{const C='id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';let all=[],off=0;while(true){const rr=await fetch(SUPABASE_URL+'/rest/v1/lifts?select='+C+'&order=created_at.desc&limit=1000&offset='+off,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});if(!rr.ok)break;const b=await rr.json();if(!Array.isArray(b)||!b.length)break;all=all.concat(b);if(b.length<1000)break;off+=1000;}lifts=all.map(l=>({...l,ts:new Date(l.created_at)}));if(currentUser.role==='driver'){renderDriverList();updateDriverHero();}else if(currentUser.role==='mgmt'){renderMgmt();}}catch(ex){console.error(ex);}}
+async function loadLifts() {
+  try {
+    // Exclude photos column to avoid 500 error (photos are too large for bulk fetch)
+    const data = await supa.select('lifts', {
+      order: 'created_at.desc',
+      cols: 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at'
+    });
+    if (Array.isArray(data)) {
+      lifts = data.map(l => ({ ...l, ts: new Date(l.created_at) }));
+      if (currentUser.role === 'driver') {
+        renderDriverList();
+        updateDriverHero();
+      } else if (currentUser.role === 'mgmt') {
+        renderMgmt();
+      }
+    }
+  } catch(e) { console.error('loadLifts:', e); }
+}
 
+/* ══════════════════════════════════════════
+   PAGE NAV
+══════════════════════════════════════════ */
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.getElementById('tab-' + p).classList.add('active');
+  if (p === 'mgmt') renderMgmt();
+  if (p === 'driver') { renderDriverList(); updateDriverHero(); }
+}
+window.goPage = goPage;
+
+/* ══════════════════════════════════════════
+   MGMT SUB-TABS
+══════════════════════════════════════════ */
+function switchMgmtTab(tab, btn) {
+  document.getElementById('msub-dashboard').style.display  = tab==='dashboard'  ? '' : 'none';
+  document.getElementById('msub-containers').style.display = tab==='containers' ? '' : 'none';
+  document.getElementById('msub-settings').style.display   = tab==='settings'   ? '' : 'none';
+  document.querySelectorAll('.page-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab==='dashboard') renderMgmt();
+  if (tab==='containers') renderContainers();
+  if (tab==='settings') renderSettings();
+}
+window.switchMgmtTab = switchMgmtTab;
+
+/* ══════════════════════════════════════════
+   CONTAINERS REGISTRY
+══════════════════════════════════════════ */
 async function addContainer() {
   const num      = document.getElementById('c-num').value.trim().toUpperCase();
   const client   = document.getElementById('c-client').value.trim();
@@ -2350,7 +2402,7 @@ function getFilteredLifts() {
       const s = new Date(n); s.setDate(n.getDate() - n.getDay()); s.setHours(0,0,0,0);
       return d >= s;
     }
-    if(activePeriod==='month'){const sm=new Date(n);sm.setDate(n.getDate()-29);sm.setHours(0,0,0,0);return d>=sm;}
+    if (activePeriod === 'month') return d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
     if (activePeriod === 'year') return d.getFullYear()===n.getFullYear();
     if (activePeriod === 'custom' && fd && td) return dStr >= fd && dStr <= td;
     return true;
@@ -2890,10 +2942,11 @@ window.toast = toast;
 })();
 
 (function(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(function(p){window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)};},function(){},{enableHighAccuracy:true,maximumAge:30000});})();
+
 const LANG={en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},ur:{dir:'rtl',appName:'ارویہ سروسز',appSub:'کنٹینر لفٹ ٹریکنگ',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائور',loginBtn:'داخل ہوں →',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال'}};
 let currentLang=localStorage.getItem('arwiya_lang')||'ar';
 function setLang(l){currentLang=l;localStorage.setItem('arwiya_lang',l);_applyLang();}window.setLang=setLang;
-function _applyLang(){const L=LANG[currentLang];['ar','en','ur'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;const _t=(s,v)=>{const e=document.querySelector(s);if(e)e.textContent=v;};if(L.appName)_t('.app-name',L.appName);if(L.appSub)_t('.app-sub',L.appSub);if(L.mgmtBtn)_t('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_t('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_t('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_t('button[onclick="doLogout()"]',L.logoutBtn);if(L.today||L.week){document.querySelectorAll('.period-btn').forEach(b=>{const m=b.getAttribute('onclick')?.match(/'(\w+)'/);if(m){const pm={today:L.today,week:L.week,month:L.month,year:L.year};if(pm[m[1]])b.textContent=pm[m[1]];}});};}
+function _applyLang(){const L=LANG[currentLang];['ar','en','ur'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;const _s=(s,v)=>{const e=document.querySelector(s);if(e)e.textContent=v;};if(L.appName)_s('.app-name',L.appName);if(L.appSub)_s('.app-sub',L.appSub);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);if(L.today){document.querySelectorAll('.period-btn').forEach(b=>{const m=b.getAttribute('onclick')?.match(/'(\w+)'/);if(m){const pm={today:L.today,week:L.week,month:L.month,year:L.year};if(pm[m[1]])b.textContent=pm[m[1]];}});};}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(_applyLang,500));
 </script>
 
