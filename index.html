@@ -2405,6 +2405,11 @@ window.setPeriod = setPeriod;
    MANAGEMENT RENDER
 ══════════════════════════════════════════ */
 function renderMgmt() {
+  // Ensure mgmt page is shown
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var pm = document.getElementById('page-mgmt');
+  if(pm) pm.classList.add('active');
+  
   const base = getFilteredLifts();
   const q    = document.getElementById('m-q')?.value.toLowerCase() || '';
   const fSz  = document.getElementById('m-sz')?.value || '';
