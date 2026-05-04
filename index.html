@@ -1523,6 +1523,17 @@ async function doLogin() {
 }
 window.doLogin = doLogin;
 
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.getElementById('tab-' + p).classList.add('active');
+  if (p === 'mgmt') renderMgmt();
+  if (p === 'driver') { renderDriverList(); updateDriverHero(); }
+}
+
+window.goPage = goPage;
+
 async function launchApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
