@@ -933,11 +933,7 @@ tr:hover td { background:var(--green-pale); }
 </style>
 </head>
 <body>
-<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;">
-  <button onclick="setLang('ar')" id="btn-ar" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:12px;font-weight:800;cursor:pointer;">ع</button>
-  <button onclick="setLang('en')" id="btn-en" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">EN</button>
-  <button onclick="setLang('ur')" id="btn-ur" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">اردو</button>
-</div>
+<div id="lang-bar" style="position:fixed;top:10px;left:12px;z-index:9999;display:flex;gap:5px;"><button onclick="setLang('ar')" id="btn-ar" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.35);color:white;font-size:12px;font-weight:800;cursor:pointer;">ع</button><button onclick="setLang('en')" id="btn-en" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">EN</button><button onclick="setLang('ur')" id="btn-ur" style="padding:3px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;">اردو</button></div>
 
 <!-- ══ Loading overlay ══ -->
 <div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(24,34,24,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:white;font-size:15px;font-weight:700;">
@@ -1267,6 +1263,7 @@ tr:hover td { background:var(--green-pale); }
               <select class="fi" id="m-drv" onchange="renderMgmt()">
                 <option value="">كل السائقين</option>
               </select>
+                <select class="fi" id="m-truck" onchange="renderMgmt()"><option value="">— كل الشاحنات —</option></select>
             </div>
             <div class="tbl-wrap">
               <table>
@@ -1746,26 +1743,25 @@ async function loadContainers() {
 
 async function loadLifts() {
   try {
-    // Exclude photos column to avoid 500 error (photos are too large for bulk fetch)
-    const data = await supa.select('lifts', {
-      order: 'created_at.desc',
-      cols: 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at'
-    });
-    if (Array.isArray(data)) {
-      lifts = data.map(l => ({ ...l, ts: new Date(l.created_at) }));
-      if (currentUser.role === 'driver') {
-        renderDriverList();
-        updateDriverHero();
-      } else if (currentUser.role === 'mgmt') {
-        renderMgmt();
-      }
+    const COLS='id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';
+    const since=new Date(); since.setDate(since.getDate()-30);
+    let all=[],offset=0;
+    while(true){
+      const url=SUPABASE_URL+'/rest/v1/lifts?select='+COLS+'&created_at=gte.'+since.toISOString()+'&order=created_at.desc&limit=1000&offset='+offset;
+      const rr=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+      if(!rr.ok)break;
+      const batch=await rr.json();
+      if(!Array.isArray(batch)||!batch.length)break;
+      all=all.concat(batch);
+      if(batch.length<1000)break;
+      offset+=1000;
     }
-  } catch(e) { console.error('loadLifts:', e); }
+    lifts=all.map(l=>({...l,ts:new Date(l.created_at)}));
+    if(currentUser.role==='driver'){renderDriverList();updateDriverHero();}
+    else if(currentUser.role==='mgmt'){renderMgmt();}
+  }catch(e){console.error('loadLifts:',e);}
 }
 
-/* ══════════════════════════════════════════
-   PAGE NAV
-══════════════════════════════════════════ */
 function goPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
@@ -2426,10 +2422,12 @@ function renderMgmt() {
   const fSz  = document.getElementById('m-sz')?.value || '';
   const fDrv = document.getElementById('m-drv')?.value || '';
 
+    const trk=document.getElementById('m-truck')?.value||'';
   const filtered = base.filter(l => {
     const mq = !q || (l.client||'').includes(q) || (l.loc||'').includes(q) ||
                (l.driver||'').includes(q) || (l.cnum||'').toLowerCase().includes(q) ||
                (l.contract||'').toLowerCase().includes(q);
+    if(trk&&l.truck!==trk)return false;
     return mq && (!fSz||l.size===fSz) && (!fDrv||l.driver===fDrv);
   });
 
@@ -2452,6 +2450,7 @@ function renderMgmt() {
 
   // Table
   setEl('m-sub', `${filtered.length} رفعة${filtered.length!==base.length?` (من ${base.length})`:''}`);
+  const trkSel=document.getElementById('m-truck');if(trkSel){const cv=trkSel.value;const tks=[...new Set(lifts.map(l=>l.truck).filter(Boolean))].sort();trkSel.innerHTML='<option value="">— كل الشاحنات —</option>'+tks.map(t=>'<option value="'+t+'"'+(t===cv?' selected':'')+'>'+t+'</option>').join('');}
   const tbody = document.getElementById('m-tbody');
   const empty = document.getElementById('m-empty');
   if (!tbody) return;
@@ -2942,11 +2941,10 @@ window.toast = toast;
 })();
 
 (function(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(function(p){window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)};},function(){},{enableHighAccuracy:true,maximumAge:30000});})();
-
 const LANG={en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},ur:{dir:'rtl',appName:'ارویہ سروسز',appSub:'کنٹینر لفٹ ٹریکنگ',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائور',loginBtn:'داخل ہوں →',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال'}};
 let currentLang=localStorage.getItem('arwiya_lang')||'ar';
 function setLang(l){currentLang=l;localStorage.setItem('arwiya_lang',l);_applyLang();}window.setLang=setLang;
-function _applyLang(){const L=LANG[currentLang];['ar','en','ur'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;const _s=(s,v)=>{const e=document.querySelector(s);if(e)e.textContent=v;};if(L.appName)_s('.app-name',L.appName);if(L.appSub)_s('.app-sub',L.appSub);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);if(L.today){document.querySelectorAll('.period-btn').forEach(b=>{const m=b.getAttribute('onclick')?.match(/'(\w+)'/);if(m){const pm={today:L.today,week:L.week,month:L.month,year:L.year};if(pm[m[1]])b.textContent=pm[m[1]];}});};}
+function _applyLang(){const L=LANG[currentLang];['ar','en','ur'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;const _s=(s,v)=>{const e=document.querySelector(s);if(e)e.textContent=v;};if(L.appName)_s('.app-name',L.appName);if(L.appSub)_s('.app-sub',L.appSub);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);if(L.today){document.querySelectorAll('.period-btn').forEach(btn=>{const m=btn.getAttribute('onclick')?.match(/'(\w+)'/);if(m){const pm={today:L.today,week:L.week,month:L.month,year:L.year};if(pm[m[1]])btn.textContent=pm[m[1]];}});};};
 document.addEventListener('DOMContentLoaded',()=>setTimeout(_applyLang,500));
 </script>
 
