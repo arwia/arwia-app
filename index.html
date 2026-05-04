@@ -38,6 +38,7 @@
   --shadow-lg:   0 8px 40px rgba(24,34,24,0.16);
   --radius:      14px;
 }
+window.goPage = goPage;
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size:15px; }
 body {
@@ -1562,6 +1563,7 @@ async function launchApp() {
   }
   setNowTime();
 }
+window.launchApp = launchApp;
 
 function showLoader(show) {
   const el = document.getElementById('fb-loading');
