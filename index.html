@@ -1762,6 +1762,7 @@ async function loadLifts() {
     else if(currentUser.role==='mgmt'){renderMgmt();}
   }catch(e){console.error('loadLifts:',e);}
 }
+window.loadLifts = loadLifts;
 function goPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
