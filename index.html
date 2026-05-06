@@ -2423,7 +2423,7 @@ function renderMgmt() {
   const q    = document.getElementById('m-q')?.value.toLowerCase() || '';
   const fSz  = document.getElementById('m-sz')?.value || '';
   const fDrv = document.getElementById('m-drv')?.value || '';
-  var _tSel=document.getElementById('m-truck');if(_tSel){var _tV=_tSel.value,_trks=[...new Set(lifts.map(function(l){return l.truck;}).filter(Boolean))].sort();_tSel.innerHTML='<option value="">— كل الشاحنات —</option>'+_trks.map(function(tr){return'<option value="'+tr+'"'+(tr===_tV?' selected':'')+'>'+tr+'</option>';}).join('');}'
+  var _tSel=document.getElementById("m-truck");if(_tSel){var _tV=_tSel.value,_trks=[...new Set(lifts.map(function(l){return l.truck;}).filter(Boolean))].sort();_tSel.innerHTML="<option value=\"\">— كل الشاحنات —</option>"+_trks.map(function(tr){return"<option value=\""+tr+"\"" +(tr===_tV?" selected":"")+">"+tr+"</option>";}).join("");}
   const fTruck = (document.getElementById('m-truck')||{}).value || '';
 
   const filtered = base.filter(l => {
