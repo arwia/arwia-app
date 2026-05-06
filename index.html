@@ -38,7 +38,6 @@
   --shadow-lg:   0 8px 40px rgba(24,34,24,0.16);
   --radius:      14px;
 }
-window.goPage = goPage;
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size:15px; }
 body {
@@ -1499,7 +1498,7 @@ const MGMT_PASS = 'arwiya2024';
    LOGIN
 ══════════════════════════════════════════ */
 function setRole(r) {
-  var df=document.getElementById('login-driver-fields');if(df)df.style.display=r==='driver'?'':'none';
+  var df=document.getElementById('login-driver-fields');if(df)df.style.display=r==='driver'?'':' none';
   currentRole = r;
   document.getElementById('rt-driver').classList.toggle('active', r==='driver');
   document.getElementById('rt-mgmt').classList.toggle('active', r==='mgmt');
@@ -1522,17 +1521,6 @@ async function doLogin() {
   await launchApp();
 }
 window.doLogin = doLogin;
-
-function goPage(p) {
-  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
-  document.getElementById('page-' + p).classList.add('active');
-  document.getElementById('tab-' + p).classList.add('active');
-  if (p === 'mgmt') renderMgmt();
-  if (p === 'driver') { renderDriverList(); updateDriverHero(); }
-}
-
-window.goPage = goPage;
 
 async function launchApp() {
   document.getElementById('login-screen').style.display = 'none';
@@ -1574,7 +1562,6 @@ async function launchApp() {
   }
   setNowTime();
 }
-window.launchApp = launchApp;
 
 function showLoader(show) {
   const el = document.getElementById('fb-loading');
@@ -1756,27 +1743,51 @@ async function loadContainers() {
 
 async function loadLifts() {
   try {
-    var COLS = 'id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';
-    var since = new Date(); since.setDate(since.getDate() - 30);
-    var sinceISO = since.toISOString();
-    var all = [], offset = 0;
-    while (true) {
-      var url = SUPABASE_URL + '/rest/v1/lifts?select=' + COLS +
-        '&created_at=gte.' + sinceISO + '&order=created_at.desc&limit=1000&offset=' + offset;
-      var r = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
-      if (!r.ok) break;
-      var batch = await r.json();
-      if (!Array.isArray(batch) || !batch.length) break;
-      all = all.concat(batch);
-      if (batch.length < 1000) break;
-      offset += 1000;
+    var COLS='id,cnum,client,contract,loc,size,qty,time,notes,driver,truck,gps_lat,gps_lng,maps_url,created_at';
+    var since=new Date(); since.setDate(since.getDate()-30);
+    var sinceISO=since.toISOString();
+    var all=[],offset=0;
+    while(true){
+      var url=SUPABASE_URL+'/rest/v1/lifts?select='+COLS+'&created_at=gte.'+sinceISO+'&order=created_at.desc&limit=1000&offset='+offset;
+      var rr=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+      if(!rr.ok)break;
+      var batch=await rr.json();
+      if(!Array.isArray(batch)||!batch.length)break;
+      all=all.concat(batch);
+      if(batch.length<1000)break;
+      offset+=1000;
     }
-    lifts = all.map(function(l) { return Object.assign({}, l, {ts: new Date(l.created_at)}); });
-    console.log('loadLifts:', lifts.length, 'lifts (last 30 days)');
-    if (currentUser.role === 'driver') { renderDriverList(); updateDriverHero(); }
-    else if (currentUser.role === 'mgmt') { renderMgmt(); }
-  } catch(e) { console.error('loadLifts:', e); }
+    lifts=all.map(function(l){return Object.assign({},l,{ts:new Date(l.created_at)});});
+    if(currentUser.role==='driver'){renderDriverList();updateDriverHero();}
+    else if(currentUser.role==='mgmt'){renderMgmt();}
+  }catch(e){console.error('loadLifts:',e);}
 }
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tb-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.getElementById('tab-' + p).classList.add('active');
+  if (p === 'mgmt') renderMgmt();
+  if (p === 'driver') { renderDriverList(); updateDriverHero(); }
+}
+window.goPage = goPage;
+
+function switchMgmtTab(tab, btn) {
+  document.getElementById('msub-dashboard').style.display  = tab==='dashboard'  ? '' : 'none';
+  document.getElementById('msub-containers').style.display = tab==='containers' ? '' : 'none';
+  document.getElementById('msub-settings').style.display   = tab==='settings'   ? '' : 'none';
+  document.querySelectorAll('.page-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab==='dashboard') renderMgmt();
+  if (tab==='containers') renderContainers();
+  if (tab==='settings') renderSettings();
+}
+
+window.switchMgmtTab = switchMgmtTab;
+
+/* ══════════════════════════════════════════
+   CONTAINERS REGISTRY
+══════════════════════════════════════════ */
 
 async function addContainer() {
   const num      = document.getElementById('c-num').value.trim().toUpperCase();
@@ -2257,9 +2268,9 @@ async function addLift() {
   if (!chosenSize) { toast('⚠️ اختر مقاس الحاوية','err'); return; }
 
   var _g=pendingGPS||window._autoGPS||null;
-  var gps_lat=_g?_g.lat:null;
-  var gps_lng=_g?_g.lng:null;
-  var maps_url=_g?_g.mapsUrl:null;
+  const gps_lat=_g?_g.lat:null;
+  const gps_lng=_g?_g.lng:null;
+  const maps_url=_g?_g.mapsUrl:null;
 
   try {
     // First insert the lift to get its ID, then upload photos
@@ -2405,18 +2416,14 @@ window.setPeriod = setPeriod;
    MANAGEMENT RENDER
 ══════════════════════════════════════════ */
 function renderMgmt() {
-  // Ensure mgmt page is shown
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  var pm = document.getElementById('page-mgmt');
-  if(pm) pm.classList.add('active');
-  
+  var _pm=document.getElementById('page-mgmt');if(_pm)_pm.classList.add('active');
   const base = getFilteredLifts();
   const q    = document.getElementById('m-q')?.value.toLowerCase() || '';
   const fSz  = document.getElementById('m-sz')?.value || '';
   const fDrv = document.getElementById('m-drv')?.value || '';
-  var truckSel=document.getElementById('m-truck');
-  if(truckSel){var curT=truckSel.value,trucks=[...new Set(lifts.map(function(l){return l.truck;}).filter(Boolean))].sort();truckSel.innerHTML='<option value="">— كل الشاحنات —</option>'+trucks.map(function(tr){return'<option value="'+tr+'"'+(tr===curT?' selected':'')+'>'+tr+'</option>';}).join('');}
-  var fTruck = (document.getElementById('m-truck')||{}).value || '';
+  var _tSel=document.getElementById('m-truck');if(_tSel){var _tV=_tSel.value,_trks=[...new Set(lifts.map(function(l){return l.truck;}).filter(Boolean))].sort();_tSel.innerHTML='<option value="">— كل الشاحنات —</option>'+_trks.map(function(tr){return'<option value="'+tr+'"'+(tr===_tV?' selected':'')+'>'+tr+'</option>';}).join('');}'
+  const fTruck = (document.getElementById('m-truck')||{}).value || '';
 
   const filtered = base.filter(l => {
     const mq = !q || (l.client||'').includes(q) || (l.loc||'').includes(q) ||
@@ -2934,12 +2941,11 @@ window.toast = toast;
 })();
 
 (function(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(function(p){window._autoGPS={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6),mapsUrl:'https://www.google.com/maps?q='+p.coords.latitude.toFixed(6)+','+p.coords.longitude.toFixed(6)};},function(){},{enableHighAccuracy:true,maximumAge:30000});})();
-var LANG={en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},ur:{dir:'rtl',appName:'ارویہ سروسز',appSub:'کنٹینر لفٹ ٹریکنگ',mgmtBtn:'انتظامیہ',driverBtn:'ڈرائور',loginBtn:'داخل ہوں →',logoutBtn:'باہر',today:'آج',week:'پچھلے 7 دن',month:'پچھلے 30 دن',year:'اس سال'}};
+var LANG={en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},ur:{dir:'rtl'}};
 var currentLang=localStorage.getItem('arwiya_lang')||'ar';
 function setLang(l){currentLang=l;localStorage.setItem('arwiya_lang',l);_applyLang();}window.setLang=setLang;
-function _applyLang(){var L=LANG[currentLang];['ar','en','ur'].forEach(function(x){var b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;function _s(s,v){var e=document.querySelector(s);if(e)e.textContent=v;}if(L.appName)_s('.app-name',L.appName);if(L.appSub)_s('.app-sub',L.appSub);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);if(L.today){document.querySelectorAll('.period-btn').forEach(function(b){var m=b.getAttribute('onclick')&&b.getAttribute('onclick').match(/'(w+)'/);if(m){var pm={today:L.today,week:L.week,month:L.month,year:L.year};if(pm[m[1]])b.textContent=pm[m[1]];}});};}
-document.addEventListener('DOMContentLoaded',function(){setTimeout(_applyLang,500);});
-</script>
+function _applyLang(){var L=LANG[currentLang];['ar','en','ur'].forEach(function(x){var b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':' rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;function _s(sel,v){var e=document.querySelector(sel);if(e)e.textContent=v;}if(L.appName)_s('.app-name',L.appName);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);}
+document.addEventListener('DOMContentLoaded',function(){setTimeout(_applyLang,500);});</script>
 
 <!-- ══ Edit Lift Modal ══ -->
 <div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
