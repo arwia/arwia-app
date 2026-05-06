@@ -1498,7 +1498,7 @@ const MGMT_PASS = 'arwiya2024';
    LOGIN
 ══════════════════════════════════════════ */
 function setRole(r) {
-  var df=document.getElementById('login-driver-fields');if(df)df.style.display=r==='driver'?'':' none';
+  var df=document.getElementById('login-driver-fields');if(df)df.style.display=r==='driver'?'':'none';
   currentRole = r;
   document.getElementById('rt-driver').classList.toggle('active', r==='driver');
   document.getElementById('rt-mgmt').classList.toggle('active', r==='mgmt');
@@ -2945,7 +2945,7 @@ window.toast = toast;
 var LANG={en:{dir:'ltr',appName:'Arwiya Services',appSub:'Container Lift Tracking',mgmtBtn:'Management',driverBtn:'Driver',loginBtn:'Login →',logoutBtn:'Logout',today:'Today',week:'Last 7 Days',month:'Last 30 Days',year:'This Year'},ur:{dir:'rtl'}};
 var currentLang=localStorage.getItem('arwiya_lang')||'ar';
 function setLang(l){currentLang=l;localStorage.setItem('arwiya_lang',l);_applyLang();}window.setLang=setLang;
-function _applyLang(){var L=LANG[currentLang];['ar','en','ur'].forEach(function(x){var b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':' rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;function _s(sel,v){var e=document.querySelector(sel);if(e)e.textContent=v;}if(L.appName)_s('.app-name',L.appName);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);}
+function _applyLang(){var L=LANG[currentLang];['ar','en','ur'].forEach(function(x){var b=document.getElementById('btn-'+x);if(b)b.style.background=x===currentLang?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)';});if(!L){document.documentElement.dir='rtl';return;}document.documentElement.dir=L.dir;function _s(sel,v){var e=document.querySelector(sel);if(e)e.textContent=v;}if(L.appName)_s('.app-name',L.appName);if(L.mgmtBtn)_s('#rt-mgmt .role-label',L.mgmtBtn);if(L.driverBtn)_s('#rt-driver .role-label',L.driverBtn);if(L.loginBtn)_s('button[onclick="doLogin()"]',L.loginBtn);if(L.logoutBtn)_s('button[onclick="doLogout()"]',L.logoutBtn);}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(_applyLang,500);});</script>
 
 <!-- ══ Edit Lift Modal ══ -->
