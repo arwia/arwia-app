@@ -1272,13 +1272,13 @@ tr:hover td { background:var(--green-pale); }
                     <th>#</th>
                     <th>رقم الحاوية</th>
                     <th>العميل / المنشأة</th>
-                    <th>العقد</th>
-                    <th>الموقع</th>
+                    
+                    
                     <th>المقاس</th>
                     <th>العدد</th>
                     <th>السائق</th>
                     <th>الشاحنة</th>
-                    <th>الوقت</th>
+                    <th>التاريخ</th><th>الوقت</th>
                     <th>صور</th>
                     <th>📍 GPS</th>
                     <th>ملاحظات</th>
@@ -2465,12 +2465,13 @@ function renderMgmt() {
         <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;">${filtered.length-i}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);">${l.cnum}</td>
         <td style="font-weight:700;">${l.client || `<span style="color:var(--muted);font-style:italic;">حاوية ${l.cnum}</span>`}</td>
-        <td style="font-size:11px;color:var(--muted);">${l.contract||'—'}</td>
-        <td style="font-size:11px;color:var(--muted);">${l.loc||'—'}</td>
+        
+        
         <td><span class="sz-tag">${SZ_ICON[l.size]} ${SZ_LABEL[l.size]}</span></td>
         <td style="font-weight:800;text-align:center;">${l.qty}</td>
         <td><span class="d-badge">👤 ${l.driver}</span></td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.truck||'—'}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${toLocalDate(l.ts)}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${l.time}</td>
         <td>${l._photosLoaded
           ? (l._photos?.length ? l._photos.map(src=>`<img class="thumb-mini" src="${src}" onclick="openLightbox('${src}')" alt="">`).join(' ') : '<span style="color:var(--muted);font-size:11px;">—</span>')
