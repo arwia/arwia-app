@@ -2571,7 +2571,11 @@ async function importFromExcel(e) {
       toast('⚠️ يرجى رفع ملف Excel أو CSV فقط', 'err');
     }
   } catch(err) {
-    toast('خطأ في قراءة الملف: ' + err.message,
+    toast('خطأ في قراءة الملف: ' + err.message, 'err');
+    console.error(err);
+  }
+}
+window.importFromExcel = importFromExcel;
 
 async function deleteAllContainers() {
   if (!containers || containers.length === 0) {
@@ -2608,7 +2612,7 @@ async function deleteAllContainers() {
     toast('خطأ: ' + e.message, 'err');
   }
 }
-window.window.deleteAllContainers = deleteAllContainers;
+window.deleteAllContainers = deleteAllContainers;
 
 window.importFromExcel = importFromExcel;
 
