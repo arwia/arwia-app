@@ -1362,7 +1362,10 @@ tr:hover td { background:var(--green-pale); }
             <div><div class="ph-title">➕ إضافة حاوية جديدة</div><div class="ph-sub">أدخل بيانات الحاوية لتظهر للسائقين</div></div>
             <label style="display:flex;align-items:center;gap:6px;background:var(--blue-pale);color:var(--blue);border:1.5px solid rgba(26,92,158,0.25);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
               📊 استيراد Excel
-              <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importFromExcel(event)">
+              <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="impor
+              <button onclick="deleteAllContainers()" style="display:flex;align-items:center;gap:6px;background:#fff0f0;color:#c0392b;border:1.5px solid rgba(192,57,43,0.25);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                🗑️ حذف جميع الحاويات
+              </button>tFromExcel(event)">
             </label>
           </div>
           <div style="padding:16px;">
@@ -2568,7 +2571,44 @@ async function importFromExcel(e) {
       toast('⚠️ يرجى رفع ملف Excel أو CSV فقط', 'err');
     }
   } catch(err) {
-    toast('خطأ في قراءة الملف: ' + err.message, 'err');
+    toast('خطأ في قراءة الملف: ' + err.message,
+
+async function deleteAllContainers() {
+  if (!containers || containers.length === 0) {
+    toast('لا توجد حاويات لحذفها', 'err');
+    return;
+  }
+  const count = containers.length;
+  const confirmed = window.confirm(
+    'تحذير!\n\nسيتم حذف ' + count + ' حاوية بشكل نهائي.\n\nهل أنت متأكد؟'
+  );
+  if (!confirmed) return;
+  try {
+    toast('⏳ جاري حذف جميع الحاويات...', 'ok');
+    const ids = containers.map(c => c.id).filter(Boolean);
+    if (ids.length > 0) {
+      const idList = ids.join(',');
+      const r = await fetch(SUPABASE_URL + '/rest/v1/containers?id=in.(' + idList + ')', {
+        method: 'DELETE',
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+      });
+      if (!r.ok && r.status !== 204) {
+        const errText = await r.text();
+        console.error('deleteAll error:', errText);
+        toast('خطأ أثناء الحذف: ' + r.status, 'err');
+        return;
+      }
+    }
+    containers = [];
+    renderContainers();
+    refreshDriverContainerSelect();
+    toast('✅ تم حذف ' + count + ' حاوية بنجاح', 'ok');
+  } catch(e) {
+    console.error('deleteAllContainers:', e);
+    toast('خطأ: ' + e.message, 'err');
+  }
+}
+window.deleteAllContainers = deleteAllContainers; 'err');
     console.error(err);
   }
 }
